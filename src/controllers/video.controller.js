@@ -3,62 +3,141 @@ import { ApiError } from "../utils/ApiError.js";
 import { Video } from "../models/video.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt from "jsonwebtoken"
-import mongoose from "mongoose";
-import { User } from "../models/user.model.js";
+import slugify from "slugify";
 
-//video file 
-//video title    
-//video description
-//thumbanail
-//duration
-//views
-//isPublished
-//owner
-//age restriction flag 
-const uploadVideo = asyncHandler(async(req,res)=>{
-    
-    const {title,description} = req.body;
 
-    if(!title || !description){
-        throw new ApiError(400,"Title and Description are required");
+const uploadVideo = asyncHandler(async (req, res) => {
+    //video file 
+    //video title    
+    //video description
+    //thumbanail
+    //duration
+    //views
+    //isPublished
+    //owner
+    const { title, description } = req.body;
+
+    if (!title || !description) {
+        throw new ApiError(400, "Title and Description are required");
     }
+    const slug = slugify(title, { lower: true, strict: true });
+    
     let videoLocalPath;
     // const videoLocalPath = req.files?.videoFile[0]?.path
+
     if (req.files && Array.isArray(req.files.videoFile) && req.files.videoFile.length > 0) {
         videoLocalPath = req.files.videoFile[0].path;
     }
 
-    if(!videoLocalPath){
-        throw new ApiError(400,"Video File is required")
+    if (!videoLocalPath) {
+        throw new ApiError(400, "Video File is required")
     }
 
-    const uploadVideo = uploadOnCloudinary(videoLocalPath,"video")
+    const uploadVideo = await uploadOnCloudinary(videoLocalPath, "video")
+    // console.log(uploadVideo)
+    if (!uploadVideo.url) {
+        throw new ApiError(500, "Failed to upload video file");
+    }
 
-    if(!uploadVideo?.url){
-        throw new ApiError(500,"Failed to upload video file");
-    }   
-    let thumbanailLocalPath;
+    let thumbnailLocalPath;
     // const thumbanailLocalPath = req.files?.thumbnail[0]?.path
-    if(req.files && Array.isArray(req.files.thumbnail) && req.files.thumbnail.length > 0){
-        thumbanailLocalPath = req.files.thumbnail[0].path
+    if (req.files && Array.isArray(req.files.thumbnail) && req.files.thumbnail.length > 0) {
+        thumbnailLocalPath = req.files.thumbnail[0].path
     }
-    const uploadThumbnail = thumbanailLocalPath 
-    ? await uploadOnCloudinary(thumbanailLocalPath,"thumbnail") : null;
+    if (!thumbnailLocalPath) {
+        throw new ApiError(400, "thumbnai is required")
+    }
+    const uploadThumbnail = await uploadOnCloudinary(thumbnailLocalPath, "thumbnail");
+    if (!uploadThumbnail.url) {
+        throw new ApiError(400, "Failed to upload thumbnail file")
+    }
 
     const video = await Video.create({
         title,
+        slug,
         description,
-        videoFile:uploadVideo.url,
-        thumbanail:uploadThumbnail?.url,
-        owner:req.user._id,
+        videoFile: uploadVideo.url,
+        thumbnail: uploadThumbnail.url,
+        owner: req.user._id,
         duration: uploadVideo.duration || 0
     });
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200,video,"Video uploaded successfully")
-);
+        .status(200)
+        .json(
+            new ApiResponse(200, video, "Video uploaded successfully")
+        );
+})
+const updateVideo = asyncHandler(async (req, res) => {
+    //change video file
+    //change thumbnail
+    //change title 
+    //change description
+    //ownership check 
+    const { slug } = req.params;
+    const { title, description } = req.body;
+    // if(!mongoose.Types.ObjectId.isValid(videoId))
+    // {
+    //     throw new ApiError(400,"Invalid video id");
+    // }
+    const video = await Video.findOne({ slug });
+    if (!video) {
+        throw new ApiError(404, "Video not found");
+    }
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "You are not allowed to update this video");
+    }
+    if (title) {
+        video.title = title;
+        video.slug = slugify(title, { lower: true, strict: true });
+    }
+    if (description) video.description = description;
+    
+
+    if (req.files?.videoFile?.length > 0) {
+        const videoLocalPath = req.files.videoFile[0].path;
+        const uploadedVideo = await uploadOnCloudinary(videoLocalPath, "video");
+        if (!uploadedVideo?.url) {
+            throw new ApiError(500, "Failed to update new video");
+        }
+        video.videoFile = uploadedVideo.url;
+        video.duration = uploadedVideo.duration || video.duration;
+    }
+
+    if (req.files?.thumbnail?.length > 0) {
+        const thumbnailLocalPath = req.files.thumbnail[0].path;
+        const uploadedThumbnail = await uploadOnCloudinary(thumbnailLocalPath, "thumnail");
+        if (!uploadedThumbnail?.url) {
+            throw new ApiError(500, "Failed to update new thumbnail");
+        }
+        video.thumbnail = uploadedThumbnail.url;
+    }
+    video.save();
+    return res
+        .status(200)
+        .json(new ApiResponse(200, video, "Video updated successfully"));
+})
+const deleteVideo = asyncHandler(async (req, res) => {
+
+})
+const getVideoById = asyncHandler(async (req, res) => {
+
+})
+const getAllVideos = asyncHandler(async (req, res) => {
+
+})
+const getUserVideos = asyncHandler(async (req, res) => {
+
+})
+const incrementViewCount = asyncHandler(async (req, res) => {
+
 })
 
-export {uploadVideo}
+export {
+    uploadVideo,
+    updateVideo,
+    deleteVideo,
+    getVideoById,
+    getAllVideos,
+    getUserVideos,
+    incrementViewCount
+}

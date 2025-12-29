@@ -32,16 +32,19 @@ const videoSchema = new Schema(
             default: true,
             index: true
         },
-        ageRestriction: {
-            type: Boolean,
-            default: false,
-            index: true
-        },
         owner: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+        slug: {
+            type: String,
+            unique: true,
+            required: true,
+            lowercase: true,
+            trim: true
         }
+
     },
     {
         timestamps: true
