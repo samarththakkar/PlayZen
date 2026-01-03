@@ -27,7 +27,6 @@ const userSchema = new Schema(
         },
         avatar: {
             type: String, // cloudinary url
-            required: true,
         },
         coverImage: {
             type: String,
@@ -40,19 +39,57 @@ const userSchema = new Schema(
         ],
         password: {
             type: String,
-            required: [true, 'Password is required'],
+            required: function () {
+                return !this.googleId && !this.facebookId;
+            },
+        },
+        resestPasswordOTP: {
+            type: String,
+        },
+        resestPasswordOTPExpiry: {
+            type: Date,
+        },
+        resetPasswordAttemps: {
+            type: Number,
+            default: 0,
+        },
+        resetPasswordLastAttemps: {
+            type: Date,
+        },
+        googleId: {
+            type: String,
+            sparse: true
+        },
+        facebookId: {
+            type: String,
+            sparse: true
+        },
+        provider: {
+            type: String,
+            enum: ['google', 'facebook', 'local'],
+            default: 'local',
+        },
+        isEmailVerified: {
+            type: Boolean,
+            default: false,
         },
         refreshToken: {
             type: String,
 
-        }
+        },
+        otp: {
+            type: String,
+        },
+        otpExpiry: {
+            type: Date,
+        },
     }, { timestamps: true }
 );
 
 
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) {
-        return 
+        return
     }
     this.password = await bcrypt.hash(this.password, 10)
 })

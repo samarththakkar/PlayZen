@@ -5,6 +5,10 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import { sendOtpEmail } from "../utils/emailHandler.js";
+
+
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -19,93 +23,227 @@ const generateAccessAndRefreshTokens = async (userId) => {
         throw new ApiError(500, "Something went wrong while generating refresh and access token")
     }
 }
+
+const sendOTPForRegistration = asyncHandler(async (req, res) => {
+    const { email, fullName } = req.body;
+    
+    if (!email || !fullName) {
+        throw new ApiError(400, "Email and full name are required");
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        throw new ApiError(409, "User already exists");
+    }
+
+    const otp = await sendOtpEmail({
+        to: email,
+        name: fullName
+    });
+
+    // Create a temporary user document for OTP storage
+    const tempUser = new User({
+        email: email,
+        fullname: fullName,
+        username: `temp_${Date.now()}`, // Temporary username
+        password: 'temp_password', // Temporary password
+        otp: otp,
+        otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+        isEmailVerified: false
+    });
+
+    await tempUser.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(200, { email }, "OTP sent successfully")
+    );
+});
+
+const verifyOTPForRegistration = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+        throw new ApiError(400, "Email and OTP are required");
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    if (user.otp !== otp || user.otpExpiry < new Date()) {
+        throw new ApiError(400, "Invalid or expired OTP");
+    }
+
+    // Clear OTP and mark as verified - avoid password hashing
+    await User.findByIdAndUpdate(user._id, {
+        $unset: { otp: 1, otpExpiry: 1 },
+        $set: { isEmailVerified: true }
+    });
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "OTP verified successfully")
+    );
+});
+
+
+
+const generateDefaultAvatar = (name) => {
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+    const firstLetter = name.charAt(0).toUpperCase();
+    const colorIndex = name.charCodeAt(0) % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    return `https://ui-avatars.com/api/?name=${firstLetter}&background=${backgroundColor.slice(1)}&color=fff&size=200`;
+}
+
+const generateDefaultCoverImage = (userId) => {
+    const gradients = [
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+        'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+        'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)'
+    ];
+    
+    const gradientIndex = userId.toString().charCodeAt(0) % gradients.length;
+    return `https://via.placeholder.com/800x200/${gradients[gradientIndex].slice(-6)}/${gradients[gradientIndex].slice(-6)}`;
+}
+
 const registerUser = asyncHandler(async (req, res) => {
-
-
-    // get user details from frontend 
-    // validation  check - not empty 
-    // check if user already exists  : username , email
-    // files : avatar , coverImage
-    // upload them to cloudinary , avatar
-    // create user object - create entry in DB
-    // remove password and refresh token field from response
-    // check for user creation 
-    // return res
-
-
-
-    const { fullName, email, username, password } = req.body;
+    const { fullName, email, username, password, provider, providerId } = req.body;
     const fullNameTrimmed = fullName?.trim();
     const emailTrimmed = email?.trim();
     const normalizedUsername = username?.trim().toLowerCase();
-    // console.log(normalizedUsername)
-    // console.log("email:",email);
-    if (
-        !fullNameTrimmed ||
-        !emailTrimmed ||
-        !normalizedUsername ||
-        !password
-    ) {
-        throw new ApiError(400, "All fields are required");
+
+    if (!fullNameTrimmed || !emailTrimmed || !normalizedUsername) {
+        throw new ApiError(400, "Name, email and username are required");
+    }
+
+    // For social login, password is optional
+    if (!provider && !password) {
+        throw new ApiError(400, "Password is required for regular registration");
     }
 
     const existedUser = await User.findOne({
-        $or: [{ username: normalizedUsername }, { email }]
-    })
+        $or: [{ username: normalizedUsername }, { email: emailTrimmed }]
+    });
 
     if (existedUser) {
-        throw new ApiError(409, "User with email or username is already exists");
-    }
-    // console.log(req.files)
-    // const avatarLocalPath = req.files?.avatar[0]?.path;
-    let avatarLocalPath;
-    if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
-        avatarLocalPath = req.files.avatar[0].path;
-    }
-    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
-    let coverImageLocalPath;
-    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
-        coverImageLocalPath = req.files.coverImage[0].path;
-    }
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is required");
+        throw new ApiError(409, "User with email or username already exists");
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    let coverImageUrl = "";
-
-    if (coverImageLocalPath) {
-        const coverImageUpload = await uploadOnCloudinary(coverImageLocalPath);
-        coverImageUrl = coverImageUpload?.url || "";
+    // Handle avatar
+    let avatarUrl;
+    if (req.files?.avatar?.[0]) {
+        const avatar = await uploadOnCloudinary(req.files.avatar[0].path);
+        avatarUrl = avatar?.url;
+    } else {
+        avatarUrl = generateDefaultAvatar(fullNameTrimmed);
     }
 
-
-    if (!avatar) {
-        throw new ApiError(400, "Avatar file is required");
+    // Handle cover image
+    let coverImageUrl;
+    if (req.files?.coverImage?.[0]) {
+        const coverImage = await uploadOnCloudinary(req.files.coverImage[0].path);
+        coverImageUrl = coverImage?.url || "";
+    } else {
+        // Generate temporary ID for gradient selection
+        const tempId = Date.now().toString();
+        coverImageUrl = generateDefaultCoverImage(tempId);
     }
 
-    const user = await User.create({
+    const userData = {
         fullname: fullNameTrimmed,
         email: emailTrimmed,
-        password,
         username: normalizedUsername,
-        avatar: avatar.url,
+        avatar: avatarUrl,
         coverImage: coverImageUrl,
-    });
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    );
+    };
 
-    if (!createdUser) {
-        throw new ApiError(500, "something went wring while registering a user")
+    // Add password only for regular registration
+    if (!provider) {
+        userData.password = password;
+    } else {
+        userData.provider = provider;
+        userData.providerId = providerId;
     }
 
+    const user = await User.create(userData);
+    
+    // Update cover image with actual user ID
+    if (!req.files?.coverImage?.[0]) {
+        user.coverImage = generateDefaultCoverImage(user._id);
+        await user.save();
+    }
+
+    const createdUser = await User.findById(user._id).select("-password -refreshToken");
+
+    if (!createdUser) {
+        throw new ApiError(500, "Something went wrong while registering user");
+    }
 
     return res.status(201).json(
-        new ApiResponse(200, createdUser, "user registered successfully")
-    )
+        new ApiResponse(200, createdUser, "User registered successfully")
+    );
 })
 
+const forgotOTPForPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const otp = await sendOtpEmail({
+        to: email,
+        name: user.fullname
+    });
+
+    await User.findOneAndUpdate(
+        { email },
+        {
+            otp: otp,
+            otpExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+        }
+    );
+
+    return res.status(200).json(
+        new ApiResponse(200, { email }, "OTP sent successfully")
+    );
+});
+const resetPasswordUsingOTP = asyncHandler(async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+        throw new ApiError(400, "Email, OTP, and new password are required");
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    if (user.otp !== otp || user.otpExpiry < new Date()) {
+        throw new ApiError(400, "Invalid or expired OTP");
+    }
+
+    // Use findByIdAndUpdate to avoid validation issues
+    await User.findByIdAndUpdate(user._id, {
+        password: newPassword,
+        $unset: { otp: 1, otpExpiry: 1 }
+    });
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Password reset successfully")
+    );
+});
 const loginUser = asyncHandler(async (req, res) => {
 
     // req body -> data
@@ -296,83 +434,6 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, "CoverImage updated successfully"))
 })
 
-const getUserChannelProfile = asyncHandler(async (req, res) => {
-    const { username } = req.params;
-
-    if (!username?.trim()) {
-        throw new ApiError(400, "username is missing");
-    }
-
-    const channel = await User.aggregate([
-        {
-            $match: {
-                username: username.toLowerCase()
-            }
-        },
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "channel",
-                as: "subscribers"
-            }
-        },
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "subscriber",
-                as: "subscribedTo"
-            }
-        },
-        {
-            $addFields: {
-                subscribersCount: { $size: "$subscribers" },
-                channelsSubscribedToCount: { $size: "$subscribedTo" },
-
-                isSubscribed: {
-                    $cond: {
-                        if: {
-                            $in: [
-                                req.user?._id,
-                                {
-                                    $map: {
-                                        input: "$subscribers",
-                                        as: "sub",
-                                        in: "$$sub.subscriber"
-                                    }
-                                }
-                            ]
-                        },
-                        then: true,
-                        else: false
-                    }
-                }
-            }
-        },
-        {
-            $project: {
-                fullName: 1,
-                username: 1,
-                subscribersCount: 1,
-                channelsSubscribedToCount: 1,
-                isSubscribed: 1,
-                avatar: 1,
-                coverImage: 1,
-                email: 1
-            }
-        }
-    ]);
-    //   console.log(channel)
-    if (!channel.length) {
-        throw new ApiError(404, "channel does not exist");
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, channel[0], "user channel fetched successfully")
-    );
-});
-
 const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
@@ -396,7 +457,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                             pipeline: [
                                 {
                                     $project: {
-                                        fullName: 1,
+                                        fullname: 1,
                                         username: 1,
                                         avatar: 1
                                     }
@@ -415,12 +476,18 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             }
         }
     ])
+
     return res
         .status(200)
         .json(
-            new ApiResponse(200, user[0].watchHistory, "Watch history fetched successfully")
+            new ApiResponse(
+                200,
+                user[0].watchHistory,
+                "Watch history fetched successfully"
+            )
         )
 })
+
 export {
     registerUser,
     loginUser,
@@ -431,6 +498,10 @@ export {
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    sendOTPForRegistration,
+    verifyOTPForRegistration,
+    forgotOTPForPassword,
+    resetPasswordUsingOTP,
+    generateAccessAndRefreshTokens
 };
