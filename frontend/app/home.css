@@ -1,0 +1,297 @@
+/* YouTube-like Home Page Styles */
+
+.home-container {
+  background-color: #0f0f0f;
+  min-height: 100vh;
+}
+
+.filter-chips-container {
+  padding: 12px 24px 0;
+  border-bottom: 1px solid #3f3f3f;
+  background-color: #0f0f0f;
+  position: sticky;
+  top: 56px;
+  z-index: 10;
+}
+
+.home-content {
+  padding: 20px 24px;
+}
+
+/* Video Grid - Exact YouTube Layout */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px 16px;
+  max-width: none;
+}
+
+@media (max-width: 1312px) {
+  .video-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+@media (max-width: 1128px) {
+  .video-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 896px) {
+  .video-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  .home-content {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 672px) {
+  .video-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .home-content {
+    padding: 20px 12px;
+  }
+}
+
+/* Loading Skeleton - YouTube Style */
+.loading-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px 16px;
+}
+
+@media (max-width: 1312px) {
+  .loading-skeleton {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+@media (max-width: 896px) {
+  .loading-skeleton {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 672px) {
+  .loading-skeleton {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-thumbnail {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background-color: #272727;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-thumbnail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-info {
+  display: flex;
+  gap: 12px;
+}
+
+.skeleton-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #272727;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-avatar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-title {
+  height: 20px;
+  background-color: #272727;
+  border-radius: 2px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-title::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-subtitle {
+  height: 16px;
+  background-color: #272727;
+  border-radius: 2px;
+  width: 60%;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-subtitle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* Error State - YouTube Style */
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 40px 20px;
+}
+
+.error-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.error-message {
+  color: #aaaaaa;
+  font-size: 16px;
+  line-height: 22px;
+  margin-bottom: 24px;
+  font-weight: 400;
+}
+
+.retry-button {
+  background-color: #cc0000;
+  color: #ffffff;
+  border: none;
+  border-radius: 18px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.retry-button:hover {
+  background-color: #aa0000;
+}
+
+.retry-button:active {
+  background-color: #880000;
+}
+
+/* Empty State - YouTube Style */
+.empty-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 40px 20px;
+}
+
+.empty-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.empty-title {
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 26px;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+
+.empty-subtitle {
+  color: #aaaaaa;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Responsive adjustments for filter chips */
+@media (max-width: 896px) {
+  .filter-chips-container {
+    padding: 12px 16px 0;
+  }
+}
+
+@media (max-width: 672px) {
+  .filter-chips-container {
+    padding: 12px 12px 0;
+  }
+}

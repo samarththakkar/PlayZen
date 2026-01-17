@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+:root {
+  --yt-black: #0f0f0f;
+  --yt-dark: #181818;
+  --yt-darker: #121212;
+  --yt-gray: #272727;
+  --yt-gray-hover: #3f3f3f;
+  --yt-border: #303030;
+  --yt-white: #ffffff;
+  --yt-text-secondary: #aaaaaa;
+  --yt-text-muted: #606060;
+  --yt-red: #cc0000;
+  --yt-red-hover: #990000;
+  --yt-red-bright: #ff0000;
+  --yt-blue: #3ea6ff;
+  --yt-blue-dark: #065fd4;
+  --yt-unread-bg: #2d2d2d;
+}
+
+@theme inline {
+  --color-yt-black: var(--yt-black);
+  --color-yt-dark: var(--yt-dark);
+  --color-yt-darker: var(--yt-darker);
+  --color-yt-gray: var(--yt-gray);
+  --color-yt-gray-hover: var(--yt-gray-hover);
+  --color-yt-border: var(--yt-border);
+  --color-yt-white: var(--yt-white);
+  --color-yt-text-secondary: var(--yt-text-secondary);
+  --color-yt-text-muted: var(--yt-text-muted);
+  --color-yt-red: var(--yt-red);
+  --color-yt-red-hover: var(--yt-red-hover);
+  --color-yt-red-bright: var(--yt-red-bright);
+  --color-yt-blue: var(--yt-blue);
+  --color-yt-blue-dark: var(--yt-blue-dark);
+  --color-yt-unread-bg: var(--yt-unread-bg);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--yt-black);
+  color: var(--yt-white);
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--yt-gray-hover);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--yt-text-secondary);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Form input animations */
+input:focus {
+  transform: translateY(0);
+}
+
+input::placeholder {
+  transition: opacity 0.2s;
+}
+
+input:focus::placeholder {
+  opacity: 0.5;
+}
+
+/* Accessibility Improvements */
+*:focus-visible {
+  outline: 2px solid var(--yt-blue);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--yt-blue);
+  outline-offset: 2px;
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

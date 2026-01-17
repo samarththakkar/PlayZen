@@ -40,7 +40,7 @@ const userSchema = new Schema(
         password: {
             type: String,
             required: function () {
-                return !this.googleId && !this.facebookId;
+                return !this.googleId;
             },
         },
         resestPasswordOTP: {
@@ -60,13 +60,10 @@ const userSchema = new Schema(
             type: String,
             sparse: true
         },
-        facebookId: {
-            type: String,
-            sparse: true
-        },
+
         provider: {
             type: String,
-            enum: ['google', 'facebook', 'local'],
+            enum: ['google', 'local'],
             default: 'local',
         },
         isEmailVerified: {

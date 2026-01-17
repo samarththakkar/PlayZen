@@ -1,0 +1,80 @@
+/* Register Page Specific Styles */
+
+/* Radial gradient animations for background */
+@keyframes radial-pulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+/* Avatar upload hover effect */
+.avatar-upload-container:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Form field focus animations */
+.register-input:focus {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Button hover lift effect */
+.register-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.register-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(62, 166, 255, 0.3);
+}
+
+.register-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* OAuth button animations */
+.oauth-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.oauth-button:hover {
+  transform: scale(1.02);
+}
+
+.oauth-button:active {
+  transform: scale(0.98);
+}
+
+/* Smooth fade-in for form elements */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-field {
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+.form-field:nth-child(1) { animation-delay: 0.05s; }
+.form-field:nth-child(2) { animation-delay: 0.1s; }
+.form-field:nth-child(3) { animation-delay: 0.15s; }
+.form-field:nth-child(4) { animation-delay: 0.2s; }
+.form-field:nth-child(5) { animation-delay: 0.25s; }
+.form-field:nth-child(6) { animation-delay: 0.3s; }
+
+/* Mobile Responsive Optimizations */
+@media (max-width: 640px) {
+  .form-field {
+    animation: none;
+  }
+}

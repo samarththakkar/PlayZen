@@ -1,16 +1,144 @@
-# React + Vite
+# YouTube Clone Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern YouTube clone frontend built with Next.js, TypeScript, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎥 Video playback with React Player
+- 🔐 User authentication (Login, Register, OAuth)
+- 📤 Video upload with thumbnail
+- 💬 Comments system
+- 👍 Like/Dislike functionality
+- 📺 Channel pages
+- 🔍 Search functionality
+- 📱 Responsive design
+- 🎨 YouTube-like UI/UX
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
 
-## Expanding the ESLint configuration
+- Node.js 18+ installed
+- Backend server running (see backend README)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Installation
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Create a `.env.local` file in the root directory:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+3. Run the development server:
+```bash
+npm run dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+frontend/
+├── app/                    # Next.js app directory
+│   ├── page.tsx           # Home page
+│   ├── login/             # Login page
+│   ├── register/          # Register page
+│   ├── upload/            # Video upload page
+│   ├── watch/             # Video watch page
+│   ├── channel/           # Channel pages
+│   └── search/            # Search page
+├── components/            # React components
+│   ├── Header.tsx         # Top navigation bar
+│   ├── Sidebar.tsx        # Side navigation
+│   ├── VideoCard.tsx      # Video card component
+│   └── MainLayout.tsx     # Main layout wrapper
+├── lib/                   # Utilities and API
+│   ├── api.ts            # Axios configuration
+│   └── api-services.ts   # API service functions
+├── store/                 # State management
+│   └── auth-store.ts     # Authentication store
+└── providers/            # React providers
+    └── query-provider.tsx # React Query provider
+```
+
+## API Integration
+
+The frontend connects to the backend API at `/api/v1`. Make sure your backend is running and the `NEXT_PUBLIC_API_URL` environment variable is set correctly.
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint
+
+## Technologies Used
+
+- **Next.js 16** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **React Query** - Data fetching and caching
+- **Zustand** - State management
+- **React Player** - Video playback
+- **Axios** - HTTP client
+- **React Icons** - Icons
+- **React Hot Toast** - Notifications
+
+## Features in Detail
+
+### Authentication
+- Email/Password login and registration
+- OAuth (Google, Facebook)
+- Protected routes
+- JWT token management
+
+### Video Features
+- Upload videos with thumbnails
+- Watch videos with player controls
+- Like/Dislike videos
+- View video details and descriptions
+- Related videos sidebar
+
+### Social Features
+- Comment on videos
+- Subscribe to channels
+- View channel pages
+- User profiles
+
+### UI/UX
+- Dark theme matching YouTube
+- Responsive design for all devices
+- Smooth animations and transitions
+- Loading states and error handling
+
+## Environment Variables
+
+Create a `.env.local` file with:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+## Troubleshooting
+
+### CORS Issues
+Make sure your backend CORS configuration allows requests from `http://localhost:3000`.
+
+### Authentication Issues
+- Ensure cookies are enabled in your browser
+- Check that the backend is running and accessible
+- Verify JWT tokens are being set correctly
+
+### Video Playback Issues
+- Ensure video URLs from Cloudinary are accessible
+- Check CORS settings for video files
+- Verify React Player is properly configured
+
+## License
+
+ISC

@@ -20,6 +20,7 @@ import {
 
 import {upload} from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { optionalAuth } from "../middlewares/optionalAuth.middleware.js";
 const router = Router();
 
 
@@ -52,23 +53,7 @@ router.route("/auth/google/callback").get(
         
         res.cookie("accessToken", accessToken, options)
            .cookie("refreshToken", refreshToken, options)
-           .redirect(`${process.env.CLIENT_URL}/dashboard?login=success`);
-    }
-);
-
-router.route("/auth/facebook").get(
-    passport.authenticate('facebook', { scope: ['email'] })
-);
-
-router.route("/auth/facebook/callback").get(
-    passport.authenticate('facebook', { session: false }),
-    async (req, res) => {
-        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(req.user._id);
-        const options = { httpOnly: true, secure: true };
-        
-        res.cookie("accessToken", accessToken, options)
-           .cookie("refreshToken", refreshToken, options)
-           .redirect(`${process.env.CLIENT_URL}/dashboard?login=success`);
+           .redirect(`${process.env.CLIENT_URL}/?login=success`);
     }
 );
 
@@ -76,7 +61,7 @@ router.route("/auth/facebook/callback").get(
 router.route("/logout").post( verifyJWT,logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/change-password").post(verifyJWT,changeCurrentPassword);
-router.route("/current-user").get(verifyJWT,getCurrentUser);
+router.route("/current-user").get(optionalAuth,getCurrentUser);
 router.route("/update-account").patch(verifyJWT,updateAccountDetails);
 router.route("/avatar").patch(verifyJWT,upload.single("avatar"),updateUserAvatar);
 router.route("/cover-image").patch(verifyJWT,upload.single("coverImage"),updateUserCoverImage);

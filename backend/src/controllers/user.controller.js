@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
 import { Video } from "../models/video.model.js";
-import { sendOtpEmail } from "../utils/emailHandler.js";
+import { sendOTP } from "../utils/brevoOtp.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -34,17 +34,13 @@ const sendOTPForRegistration = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User already exists");
     }
 
-    const otp = await sendOtpEmail({
-        to: email,
-        name: fullName
-    });
+    const otp = await sendOTP(email);
 
-    // Create a temporary user document for OTP storage
     const tempUser = new User({
         email: email,
         fullname: fullName,
-        username: `temp_${Date.now()}`, // Temporary username
-        password: 'temp_password', // Temporary password
+        username: `temp_${Date.now()}`,
+        password: 'temp_password',
         otp: otp,
         otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
         isEmailVerified: false
@@ -85,23 +81,6 @@ const verifyOTPForRegistration = asyncHandler(async (req, res) => {
     );
 });
 
-const generateDefaultAvatar = (name) => {
-    const colors = ['FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7', 'DDA0DD', '98D8C8'];
-    const firstLetter = name.charAt(0).toUpperCase();
-    const colorIndex = name.charCodeAt(0) % colors.length;
-    const backgroundColor = colors[colorIndex];
-    
-    return `https://ui-avatars.com/api/?name=${firstLetter}&background=${backgroundColor}&color=fff&size=200`;
-}
-
-const generateDefaultCoverImage = (userId) => {
-    const colors = ['667eea', 'f093fb', '4facfe', '43e97b', 'fa709a', 'a8edea', 'ff9a9e'];
-    const colorIndex = userId.toString().charCodeAt(0) % colors.length;
-    const color = colors[colorIndex];
-    
-    return `https://via.placeholder.com/800x200/${color}/${color}`;
-}
-
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password, provider, providerId } = req.body;
     const fullNameTrimmed = fullName?.trim();
@@ -126,21 +105,17 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // Handle avatar
-    let avatarUrl;
+    let avatarUrl = "";
     if (req.files?.avatar?.[0]) {
         const avatar = await uploadOnCloudinary(req.files.avatar[0].path);
-        avatarUrl = avatar?.url;
-    } else {
-        avatarUrl = generateDefaultAvatar(fullNameTrimmed);
+        avatarUrl = avatar?.url || "";
     }
 
     // Handle cover image
-    let coverImageUrl;
+    let coverImageUrl = "";
     if (req.files?.coverImage?.[0]) {
         const coverImage = await uploadOnCloudinary(req.files.coverImage[0].path);
         coverImageUrl = coverImage?.url || "";
-    } else {
-        coverImageUrl = "";
     }
 
     const userData = {
@@ -160,12 +135,6 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const user = await User.create(userData);
-    
-    // Set cover image with actual user ID for consistency
-    if (!req.files?.coverImage?.[0]) {
-        user.coverImage = generateDefaultCoverImage(user._id);
-        await user.save();
-    }
 
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
@@ -278,6 +247,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 })
 
+
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body
     const user = await User.findById(req.user?._id)
@@ -293,6 +263,9 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 })
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+    if (!req.user) {
+        return res.status(200).json(new ApiResponse(200, null, "No user logged in"));
+    }
     return res
         .status(200)
         .json(new ApiResponse(200, req.user, "current user fetched successfully"))
@@ -502,16 +475,13 @@ const forgotOTPForPassword = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found");
     }
 
-    const otp = await sendOtpEmail({
-        to: email,
-        name: user.fullname
-    });
+    const otp = await sendOTP(email);
 
     await User.findOneAndUpdate(
         { email },
         {
             otp: otp,
-            otpExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+            otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
         }
     );
 
@@ -534,11 +504,10 @@ const resetPasswordUsingOTP = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid or expired OTP");
     }
 
-    // Use findByIdAndUpdate to avoid validation issues
-    await User.findByIdAndUpdate(user._id, {
-        password: newPassword,
-        $unset: { otp: 1, otpExpiry: 1 }
-    });
+    user.password = newPassword;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
 
     return res.status(200).json(
         new ApiResponse(200, {}, "Password reset successfully")
@@ -546,7 +515,7 @@ const resetPasswordUsingOTP = asyncHandler(async (req, res) => {
 });
 const addToWatchHistory = asyncHandler(async (req, res) => {
     const {videoId} = req.params;
-    const {userId} = req.user._id;
+    const userId = req.user._id;
     if (!videoId) {
         throw new ApiError(400, "Video ID is required");
     }
@@ -554,7 +523,7 @@ const addToWatchHistory = asyncHandler(async (req, res) => {
     if(!video){
         throw new ApiError(404, "Video not found");
     }
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
         userId,
         {
             $pull: {
