@@ -1,11 +1,15 @@
 import { Router } from "express";
-import { uploadVideo,
+import {
+    uploadVideo,
     getAllVideos,
+    getAllShorts,
     isPublished,
     deleteVideo,
     getVideoById,
     updateVideoDetails,
-    userVideos } from "../controllers/video.controller.js";
+    userVideos,
+    getStudioVideos
+} from "../controllers/video.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -13,6 +17,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 router.route("/upload-video").post(
+    verifyJWT,
     upload.fields([
         {
             name: "videoFile",
@@ -23,9 +28,10 @@ router.route("/upload-video").post(
             maxCount: 1
         }
     ]),
-    verifyJWT, uploadVideo
+    uploadVideo
 )
 router.route("/update-video/:videoId").patch(
+    verifyJWT,
     upload.fields([
         {
             name: "videos",
@@ -36,13 +42,14 @@ router.route("/update-video/:videoId").patch(
             maxCount: 1
         }
     ]),
-    verifyJWT, 
     updateVideoDetails
 );
 router.route("/get-video/:videoId").get(getVideoById);
-router.route("/user-videos/:username").get(verifyJWT, userVideos);
-router.route("/get-all-videos").get(getAllVideos);  
-router.route("/is-published/:videoId").get(verifyJWT,isPublished);
+router.route("/studio-videos").get(verifyJWT, getStudioVideos);
+router.route("/user-videos/:username").get(userVideos);
+router.route("/get-all-videos").get(getAllVideos);
+router.route("/get-all-shorts").get(getAllShorts);
+router.route("/is-published/:videoId").get(verifyJWT, isPublished);
 router.route("/delete-video/:videoId").delete(verifyJWT, deleteVideo);
 export default router;
 

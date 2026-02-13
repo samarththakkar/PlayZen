@@ -47,6 +47,15 @@ const videoSchema = new Schema(
             required: true,
             lowercase: true,
             trim: true
+        },
+        isShort: {
+            type: Boolean,
+            default: false,
+            index: true
+        },
+        category: {
+            type: String,
+            default: 'Other'
         }
 
     },

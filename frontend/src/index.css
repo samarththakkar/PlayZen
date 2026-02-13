@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #0f0f0f;
+  --bg-hover: #272727;
+  --bg-active: #3f3f3f;
+
+  --surface-primary: #121212;
+  --surface-secondary: #282828;
+
+  --border-default: #303030;
+
+  --text-primary: #f1f1f1;
+  --text-secondary: #aaaaaa;
+
+  --brand-blue: #3ea6ff;
+
+  /* Legacy vars required for complex components not yet refactored */
+  --yt-red: #cc0000;
+  --yt-red-hover: #990000;
+  --yt-unread-bg: #2d2d2d;
+}
+
+@theme inline {
+  --color-bg-primary: #0f0f0f;
+  --color-bg-secondary: #0f0f0f;
+  /* Sidebar/Header match main bg in modern youtube */
+  --color-bg-hover: #272727;
+  --color-bg-active: #3f3f3f;
+
+  --color-surface-primary: #121212;
+  --color-surface-secondary: #282828;
+
+  --color-border-default: #303030;
+  --color-border-hover: #3f3f3f;
+
+  --color-text-primary: #f1f1f1;
+  --color-text-secondary: #aaaaaa;
+  --color-text-muted: #717171;
+
+  --color-brand-red: #cc0000;
+  --color-brand-blue: #3ea6ff;
+
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  /* Retain legacy mapped vars for backward compat until full migration */
+  --color-yt-black: var(--bg-primary);
+  --color-yt-dark: var(--surface-primary);
+  --color-yt-gray: var(--bg-hover);
+  --color-yt-gray-hover: var(--bg-active);
+  --color-yt-border: var(--border-default);
+  --color-yt-text-secondary: var(--text-secondary);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--yt-black);
+  color: var(--yt-white);
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--yt-gray-hover);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--yt-text-secondary);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Enhanced focus styles */
+*:focus-visible {
+  outline: 2px solid var(--yt-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--yt-blue);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+* {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

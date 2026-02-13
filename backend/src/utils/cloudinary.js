@@ -11,22 +11,45 @@ const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
     try {
         if(!localFilePath) return null
 
-        // upload the file on cloudinary 
+        console.log('Starting Cloudinary upload for:', localFilePath);
+        
+        // Check file size
+        const stats = fs.statSync(localFilePath);
+        const fileSizeInMB = stats.size / (1024 * 1024);
+        console.log('File size:', fileSizeInMB.toFixed(2), 'MB');
+        
+        // Use upload_large for files over 100MB
+        if (fileSizeInMB > 100 && resourceType === "video") {
+            const response = await cloudinary.uploader.upload_large(localFilePath, {
+                resource_type: "video",
+                chunk_size: 6000000,
+                timeout: 600000
+            });
+            
+            console.log('Cloudinary large upload successful:', response.url);
+            
+            if (fs.existsSync(localFilePath)) {
+                fs.unlinkSync(localFilePath)
+            }
+            return response;
+        }
+        
+        // Regular upload for smaller files
         const response = await cloudinary.uploader.upload(localFilePath,{
-            resource_type: resourceType === "video" ? "video" : "auto"
+            resource_type: resourceType === "video" ? "video" : "auto",
+            chunk_size: 6000000,
+            timeout: 600000
         })
 
-        //file has been uploaded successfully
-        // console.log("file is uploaded on cloudinary",response.url);
+        console.log('Cloudinary upload successful:', response.url);
         
-        // Clean up the temporary file after successful upload
         if (fs.existsSync(localFilePath)) {
             fs.unlinkSync(localFilePath)
         }
         return response;
 
     } catch (error) {
-        // Clean up the temporary file even if upload failed
+        console.error('Cloudinary upload error:', error);
         if (fs.existsSync(localFilePath)) {
             fs.unlinkSync(localFilePath)
         }
