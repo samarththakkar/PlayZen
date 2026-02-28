@@ -1,0 +1,47 @@
+import React, { createContext, useState, useEffect } from 'react';
+import authService from '../services/authService';
+
+export const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser.data);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Authentication check failed", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  const login = async (credentials) => {
+    const response = await authService.login(credentials);
+    setUser(response.data.user);
+    setIsAuthenticated(true);
+    return response;
+  };
+
+  const logout = async () => {
+    await authService.logout();
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout }}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
+};
