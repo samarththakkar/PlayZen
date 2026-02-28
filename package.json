@@ -1,0 +1,24 @@
+{
+  "name": "playhub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix 'backend '\" \"npm run dev --prefix frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samarththakkar/PlayHub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/samarththakkar/PlayHub/issues"
+  },
+  "homepage": "https://github.com/samarththakkar/PlayHub#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
