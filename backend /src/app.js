@@ -7,7 +7,14 @@ const app = express();
 // Trigger reload 4
 
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: function (origin, callback) {
+        const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'];
+        if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.CORS_ORIGIN === origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 }));
 
