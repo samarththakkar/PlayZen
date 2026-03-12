@@ -1,0 +1,65 @@
+/* ==========================================================================
+   Main Layout Styles (Mobile-First)
+   ========================================================================== */
+
+/* The absolute root container of the app shell */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #0a0a0a !important;
+    background: #0a0a0a !important;
+    color: var(--text-primary);
+}
+
+/* 
+  Header acts as a fixed top bar.
+  We reserve its height using CSS variables for child calculations.
+*/
+:root {
+    --header-height: 60px;
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 72px;
+    --mobile-nav-height: 65px;
+}
+
+/* The horizontal wrapper for Sidebar + Main Content */
+.app-body {
+    display: flex;
+    flex: 1;
+    position: relative;
+}
+
+/* Main content wrapper where React Router <Outlet> renders */
+.app-main-content {
+    flex: 1;
+    background-color: #0a0a0a !important;
+    background: #0a0a0a !important;
+    width: 100%;
+    padding-top: var(--header-height);
+    transition: margin-left 0.3s ease;
+    /* No defined height or overflow, let the document scroll natively */
+}
+
+/* Push content to the right of the fixed sidebar on Desktop/Tablet */
+@media (min-width: 1024px) {
+    .app-main-content {
+        margin-left: var(--sidebar-width, 240px);
+    }
+
+    .app-body.sidebar-collapsed .app-main-content {
+        margin-left: var(--sidebar-collapsed-width, 72px);
+    }
+}
+
+/* Mobile Devices: Pad bottom so Bottom Nav doesn't hide content */
+@media (max-width: 767px) {
+    .app-main-content {
+        padding-bottom: var(--mobile-nav-height);
+    }
+}
+
+/* Desktop/Tablet CSS Grid optimizations (optional wrapper) */
+.page-wrapper {
+    min-height: 100%;
+}

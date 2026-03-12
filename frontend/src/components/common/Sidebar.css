@@ -1,0 +1,140 @@
+/* ==========================================================================
+   Sidebar Styles (Desktop/Tablet)
+   ========================================================================== */
+
+/* Hidden completely on mobile screens (< 768px). Controlled by MainLayout hiding it physically if needed, or by media queries here. */
+
+.global-sidebar {
+    position: fixed;
+    top: var(--header-height, 60px);
+    width: var(--sidebar-width, 240px);
+    height: calc(100vh - var(--header-height, 60px));
+    color: white;
+    background-color: #0a0a0a !important;
+    border-right: 1px solid #2a2a2a;
+    overflow-y: auto;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+    transition: width 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding-top: 0.5rem;
+    /* Scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.global-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.global-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 10px;
+}
+
+/* Collapsed State */
+.global-sidebar.collapsed {
+    width: var(--sidebar-collapsed-width, 72px);
+}
+
+.sidebar-section {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-section:last-child {
+    border-bottom: none;
+}
+
+.sidebar-section-title {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Hide section titles when collapsed */
+.global-sidebar.collapsed .sidebar-section-title {
+    display: none;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0.75rem 1rem;
+    margin: 0.2rem 0.75rem;
+    border-radius: 10px;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.sidebar-link:hover {
+    background-color: #222222;
+}
+
+.sidebar-link.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-link.active:hover {
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+}
+
+.sidebar-icon {
+    flex-shrink: 0;
+    /* Prevent icon from squeezing */
+}
+
+.sidebar-text {
+    font-size: 0.95rem;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* Adjustments when Collapsed */
+.global-sidebar.collapsed .sidebar-link {
+    justify-content: center;
+    padding: 0.75rem 0;
+}
+
+.global-sidebar.collapsed .sidebar-text {
+    display: none;
+}
+
+/* 
+  ---------------------------------------------------------
+  MEDIA QUERIES (Mobile-First Hiding)
+  --------------------------------------------------------- 
+*/
+@media (max-width: 1023px) {
+
+    /* On tablets and mobile, the Sidebar behaves as an absolute overlay if "open" */
+    .global-sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 90;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        height: 100%;
+        /* Fill screen height below header */
+    }
+
+    .global-sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 10px 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    /* We don't use 'collapsed' state on mobile/tablet. It's either open (drawer) or closed. */
+}

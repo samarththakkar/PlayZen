@@ -45,4 +45,17 @@ app.use("/api/v1/tweets", tweetRouter);
 app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
+
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(statusCode).json({
+        success: false,
+        message: message,
+        errors: err.errors || []
+    });
+});
+
 export { app };

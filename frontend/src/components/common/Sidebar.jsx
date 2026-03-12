@@ -1,20 +1,77 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { 
+  Home, Compass, Tv, PlaySquare, Clock, ThumbsUp, 
+  History, Settings, HelpCircle, Gamepad2, Trophy, Flame, Music
+} from 'lucide-react';
+import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen }) => {
+  const { user } = useAuth();
+  
+  // Mobile devices use a different prop class structure than desktops.
+  // On desktop (`isOpen === true` means expanded, `isOpen === false` means collapsed).
+  // On mobile (`isOpen === true` means overlay open, `isOpen === false` means hidden).
+  
+  // To keep CSS simple, we assume >1024px uses 'collapsed' class. 
+  // <1024px uses 'mobile-open'. MainLayout handles the window sizes.
+  
+  const isMobile = window.innerWidth < 1024;
+  const sidebarClass = isMobile 
+    ? (isOpen ? 'global-sidebar mobile-open' : 'global-sidebar') 
+    : (isOpen ? 'global-sidebar' : 'global-sidebar collapsed');
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex-shrink-0 hidden md:flex md:flex-col">
-      <div className="p-4">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Menu</h2>
-        <nav className="space-y-1">
-          <Link to="/" className="block px-3 py-2 text-sm font-medium text-gray-900 rounded-md hover:bg-gray-50">
-            Home
-          </Link>
-          <Link to="/dashboard" className="block px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50">
-            Dashboard
-          </Link>
-        </nav>
+    <aside className={sidebarClass}>
+      
+      <div className="sidebar-section">
+        <NavLink to="/" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+          <Home className="sidebar-icon" size={22} />
+          <span className="sidebar-text">Home</span>
+        </NavLink>
+        <NavLink to="/shorts" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+          <PlaySquare className="sidebar-icon" size={22} />
+          <span className="sidebar-text">Shorts</span>
+        </NavLink>
+        
+        {user && (
+          <NavLink to="/subscriptions" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+            <Tv className="sidebar-icon" size={22} />
+            <span className="sidebar-text">Subscriptions</span>
+          </NavLink>
+        )}
       </div>
+
+      {user && (
+        <div className="sidebar-section">
+          <h3 className="sidebar-section-title">You</h3>
+          <NavLink to="/channel" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+            <PlaySquare className="sidebar-icon" size={22} />
+            <span className="sidebar-text">Your Channel</span>
+          </NavLink>
+          <NavLink to="/history" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+            <History className="sidebar-icon" size={22} />
+            <span className="sidebar-text">History</span>
+          </NavLink>
+          <NavLink to="/watch-later" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+            <Clock className="sidebar-icon" size={22} />
+            <span className="sidebar-text">Watch Later</span>
+          </NavLink>
+          <NavLink to="/liked-videos" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+            <ThumbsUp className="sidebar-icon" size={22} />
+            <span className="sidebar-text">Liked Videos</span>
+          </NavLink>
+        </div>
+      )}
+
+      <div className="sidebar-section">
+        <NavLink to="/settings" className={({isActive}) => isActive ? "sidebar-link active" : "sidebar-link"}>
+          <Settings className="sidebar-icon" size={22} />
+          <span className="sidebar-text">Settings</span>
+        </NavLink>
+      </div>
+
     </aside>
   );
 };

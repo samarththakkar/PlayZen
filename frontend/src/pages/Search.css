@@ -1,0 +1,121 @@
+/* ==========================================================================
+   Search Page Styles
+   ========================================================================== */
+
+.search-page-container {
+    width: 100%;
+    padding: 1.5rem;
+    padding-bottom: 5rem;
+    box-sizing: border-box;
+}
+
+.search-header-banner {
+    padding: 1rem 0 2rem 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.search-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary, var(--text-primary));
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.search-title .highlight {
+    color: var(--accent-color);
+    /* Main Brand Color */
+    font-style: italic;
+}
+
+.search-count {
+    color: var(--text-muted, var(--text-muted));
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Reusing grid structure, specifically tailored for search results */
+.search-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+@media (min-width: 1440px) {
+    .search-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1920px) {
+    .search-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Empty or Error State */
+.search-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 16px;
+    border: 1px dashed var(--border-color);
+    margin-top: 2rem;
+}
+
+.search-empty-state h2 {
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.empty-state-p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Skeletons embedded in Search Grid */
+.video-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.skeleton-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+}
+
+.skeleton-info {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.skeleton-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.skeleton-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-top: 0.2rem;
+}

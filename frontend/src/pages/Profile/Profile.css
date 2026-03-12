@@ -1,0 +1,279 @@
+/* ==========================================================================
+   Profile Page Styles (Strict Dark Theme)
+   ========================================================================== */
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #0a0a0a !important;
+    background: #0a0a0a !important;
+    color: #ffffff !important;
+}
+
+/* 1. Cover Photo Area */
+.profile-cover-section {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    background: #111111 !important;
+    background-color: #111111 !important;
+    border-bottom: 1px solid #2a2a2a;
+    overflow: hidden;
+}
+
+.profile-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+}
+
+.profile-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #0a0a0a 100%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 2. Header Info Area */
+.profile-header-info {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 2rem;
+    display: flex;
+    align-items: flex-end;
+    margin-top: -60px;
+    /* Overlap the cover */
+    position: relative;
+    z-index: 10;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.profile-avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #0a0a0a;
+    /* Match background to carve out */
+    background: #111111 !important;
+    background-color: #111111 !important;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.profile-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 800;
+    font-family: 'Orbitron', sans-serif;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #2a2a2a 0%, #111111 100%) !important;
+}
+
+.profile-details {
+    flex: 1;
+    padding-bottom: 0.5rem;
+}
+
+.profile-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.1;
+    color: #ffffff !important;
+}
+
+.profile-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #a0a0a0 !important;
+    font-size: 0.95rem;
+    margin: 0 0 0.75rem 0;
+    flex-wrap: wrap;
+}
+
+.profile-handle {
+    font-weight: 600;
+    color: #ffffff !important;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.profile-actions {
+    padding-bottom: 0.5rem;
+}
+
+.profile-btn {
+    padding: 0.7rem 1.5rem;
+    border-radius: 30px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.profile-btn-subscribe {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0a0a0a !important;
+}
+
+.profile-btn-subscribe:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+}
+
+.profile-btn-edit {
+    background: #111111 !important;
+    background-color: #111111 !important;
+    color: #ffffff !important;
+    border: 1px solid #2a2a2a;
+}
+
+.profile-btn-edit:hover {
+    background: #222222 !important;
+    border-color: #ffffff;
+}
+
+/* 3. Navigation Tabs */
+.profile-tabs-wrapper {
+    width: 100%;
+    border-bottom: 1px solid #2a2a2a;
+    background-color: #0a0a0a !important;
+}
+
+.profile-tabs {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.profile-tab {
+    padding: 1rem 0;
+    color: #a0a0a0 !important;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.profile-tab:hover {
+    color: #ffffff !important;
+}
+
+.profile-tab.active {
+    color: #ffffff !important;
+    border-bottom-color: #ffffff;
+}
+
+/* 4. Content Area */
+.profile-content-area {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 2rem;
+    flex: 1;
+    background-color: #0a0a0a !important;
+}
+
+.profile-grid-container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+}
+
+.profile-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #a0a0a0 !important;
+    background: #111111 !important;
+    background-color: #111111 !important;
+    border: 1px dashed #2a2a2a;
+    border-radius: 12px;
+}
+
+/* Media Queries */
+@media (min-width: 768px) {
+    .profile-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .profile-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .profile-cover-section {
+        height: 300px;
+        /* Taller cover on desktop */
+    }
+}
+
+@media (max-width: 767px) {
+    .profile-header-info {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-top: -50px;
+        padding: 0 1rem 1rem 1rem;
+    }
+
+    .profile-avatar-wrapper {
+        width: 100px;
+        height: 100px;
+    }
+
+    .profile-stats {
+        justify-content: center;
+    }
+
+    .profile-actions {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .profile-btn {
+        width: 100%;
+    }
+
+    .profile-tabs {
+        padding: 0 1rem;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .profile-content-area {
+        padding: 1.5rem 1rem;
+    }
+}

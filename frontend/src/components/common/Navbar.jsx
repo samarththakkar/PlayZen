@@ -8,12 +8,10 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-primary-600">
-              PlayHub
+              PlayZen
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
-            <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
           </div>
         </div>
       </div>

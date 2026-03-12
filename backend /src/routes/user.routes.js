@@ -43,14 +43,14 @@ router.route("/login").post(loginUser)
 
 //OAuth routes - redirect to provider login pages
 router.route("/auth/google").get(
-    passport.authenticate('google', { scope: ['profile', 'email'] })
+    passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' })
 );
 
 router.route("/auth/google/callback").get(
     passport.authenticate('google', { session: false }),
     async (req, res) => {
         const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(req.user._id);
-        const options = { httpOnly: true, secure: true };
+        const options = { httpOnly: true, secure: process.env.NODE_ENV === "production" };
 
         res.cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)

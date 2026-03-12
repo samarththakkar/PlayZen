@@ -1,0 +1,517 @@
+/* ==========================================================================
+   Header Styles (Mobile-First)
+   ========================================================================== */
+
+.global-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height, 60px);
+    background-color: #0a0a0a !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+/* 
+  ---------------------------------------------------------
+  1. Left Section (Logo & Hamburger)
+  --------------------------------------------------------- 
+*/
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.hamburger-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.brand-logo-icon {
+    color: #22c55e;
+    /* Green Play Arrow */
+}
+
+.brand-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* 
+  ---------------------------------------------------------
+  2. Center Section (Search Bar)
+  --------------------------------------------------------- 
+*/
+.header-center {
+    flex: 1;
+    max-width: 600px;
+    display: flex;
+    justify-content: center;
+    margin: 0 1rem;
+}
+
+/* Hide the main search bar on mobile screens */
+.desktop-search-form {
+    display: none;
+    width: 100%;
+    max-width: 600px;
+    height: 40px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(20, 20, 20, 0.6);
+    /* Lighter shade against the dark header */
+    overflow: hidden;
+    align-items: center;
+}
+
+.desktop-search-form:focus-within {
+    border-color: var(--accent-color);
+    /* Highlight border on focus */
+}
+
+.search-input {
+    flex: 1;
+    height: 100%;
+    background-color: #161616;
+    border: 1px solid #2a2a2a;
+    /* border radius should be on left side only */
+    border-top-left-radius: 40px;
+    border-bottom-left-radius: 40px;
+    color: #ffffff;
+    padding: 0 1rem 0 1.25rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.543);
+}
+
+.search-input:focus {
+    outline: none;
+}
+
+.search-icon-btn {
+    width: 64px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 
+  ---------------------------------------------------------
+  3. Right Section (Upload, Notification, Profile)
+  --------------------------------------------------------- 
+*/
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-icon-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.header-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Search Icon (only visible on mobile) */
+.mobile-search-btn {
+    display: flex;
+}
+
+.desktop-upload-btn {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 0.5rem;
+}
+
+.desktop-upload-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+}
+
+/* Profile Avatar */
+.profile-avatar-btn {
+    background: transparent;
+    border: 2px solid transparent;
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    transition: border-color 0.2s;
+    position: relative;
+}
+
+.profile-avatar-btn:hover {
+    border-color: var(--accent-color);
+}
+
+.header-avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* 
+  ---------------------------------------------------------
+  4. Dropdowns & Overlays
+  --------------------------------------------------------- 
+*/
+.dropdown-menu {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 280px;
+    background-color: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    z-index: 200;
+    animation: slideDown 0.2s ease forwards;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid #2a2a2a;
+    color: #FFFFFF;
+}
+
+.dropdown-large-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.dropdown-header-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    min-width: 0;
+    /* allows text truncation */
+}
+
+.dropdown-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-email {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.75rem;
+    color: #ffffff;
+    margin-top: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0.5rem;
+    border-radius: 8px;
+    color: #ffffff;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    background: transparent;
+    border: none;
+    width: calc(100% - 1rem);
+    /* Account for margin */
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.dropdown-item:hover {
+    background-color: #222222;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #2a2a2a;
+    margin: 0.5rem 0;
+}
+
+.logout-item {
+    color: #e53935;
+    /* Keep the red tint as requested */
+}
+
+.logout-item:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Mobile Search Overlay */
+.mobile-search-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    animation: slideInRight 0.2s ease forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.mobile-search-input {
+    flex: 1;
+    background-color: #161616;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 0.5rem;
+    font-size: 1rem;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.mobile-search-input:focus {
+    outline: none;
+}
+
+/* 
+  ==========================================================================
+   MEDIA QUERIES (Desktop Enhancements)
+  ========================================================================== 
+*/
+/* Mobile specific hides */
+@media (max-width: 767px) {
+
+    .hamburger-btn,
+    .mobile-upload-btn,
+    .profile-avatar-btn {
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .hamburger-btn {
+        display: flex;
+        /* Ensure visible on desktop */
+    }
+
+    .desktop-search-form {
+        display: flex;
+    }
+
+    .mobile-search-btn {
+        display: none;
+    }
+
+    .mobile-upload-btn {
+        display: none;
+    }
+
+    .desktop-upload-btn {
+        display: flex;
+    }
+}
+
+/* ==========================================================================
+   Search Autocomplete Dropdown Styles
+   ========================================================================== */
+
+.search-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    background-color: #1a1a1a !important;
+    background: #1a1a1a !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid #2a2a2a !important;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+    overflow: hidden;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    animation: slideDownFade 0.2s ease-out forwards;
+}
+
+.mobile-suggestions {
+    position: relative;
+    top: 1rem;
+    box-shadow: none !important;
+    border: none !important;
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+.autocomplete-item {
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    background-color: transparent !important;
+    color: #ffffff !important;
+}
+
+.autocomplete-item-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.autocomplete-item:hover {
+    background-color: #222222 !important;
+}
+
+.autocomplete-icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.autocomplete-text {
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-item .autocomplete-text {
+    color: #a5b4fc;
+    /* Slightly distinct color for history to differentiate from live search */
+}
+
+.autocomplete-remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.25rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.autocomplete-remove-btn:hover {
+    color: #ef4444;
+    /* Red on hover to indicate destructive action */
+    background: rgba(239, 68, 68, 0.1);
+}
+
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

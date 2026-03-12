@@ -24,14 +24,29 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 const sendOTPForRegistration = asyncHandler(async (req, res) => {
     const { email, fullName } = req.body;
-    
+
     if (!email || !fullName) {
         throw new ApiError(400, "Email and full name are required");
     }
 
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-        throw new ApiError(409, "User already exists");
+        if (existingUser.isEmailVerified) {
+            throw new ApiError(409, "User already exists and is fully verified");
+        }
+
+        // User exists but is unverified. Resend OTP and update existing record.
+        const otp = await sendOTP(email);
+        existingUser.otp = otp;
+        existingUser.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        existingUser.fullname = fullName; // Update name in case they changed it
+
+        await existingUser.save({ validateBeforeSave: false });
+
+        return res.status(200).json(
+            new ApiResponse(200, { email }, "OTP resent successfully")
+        );
     }
 
     const otp = await sendOTP(email);
@@ -96,12 +111,15 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Password is required for regular registration");
     }
 
-    const existedUser = await User.findOne({
-        $or: [{ username: normalizedUsername }, { email: emailTrimmed }]
-    });
+    const existedUserByUsername = await User.findOne({ username: normalizedUsername });
+    const existedUserByEmail = await User.findOne({ email: emailTrimmed });
 
-    if (existedUser) {
-        throw new ApiError(409, "User with email or username already exists");
+    if (existedUserByUsername && existedUserByUsername.email !== emailTrimmed) {
+        throw new ApiError(409, "User with this username already exists");
+    }
+
+    if (!provider && (!existedUserByEmail || !existedUserByEmail.isEmailVerified)) {
+        throw new ApiError(400, "Please verify your email first before registering");
     }
 
     // Handle avatar
@@ -111,6 +129,25 @@ const registerUser = asyncHandler(async (req, res) => {
         avatarUrl = avatar?.url || "";
     }
 
+    if (!avatarUrl) {
+        // Vibrant hex colors excluding black, dark gray, and browns.
+        const vibrantColors = [
+            'ef4444', 'f97316', 'f59e0b', 'eab308', '84cc16',
+            '22c55e', '10b981', '14b8a6', '06b6d4', '0ea5e9',
+            '3b82f6', '6366f1', '8b5cf6', 'a855f7', 'd946ef', 'f43f5e'
+        ];
+        // Hash the username or email to pick a consistent color for this initial creation
+        const hashStr = normalizedUsername || emailTrimmed || 'user';
+        let hash = 0;
+        for (let i = 0; i < hashStr.length; i++) {
+            hash = hashStr.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const colorIndex = Math.abs(hash) % vibrantColors.length;
+        const bgColor = vibrantColors[colorIndex];
+
+        avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullNameTrimmed)}&background=${bgColor}&color=fff&length=1`;
+    }
+
     // Handle cover image
     let coverImageUrl = "";
     if (req.files?.coverImage?.[0]) {
@@ -118,23 +155,39 @@ const registerUser = asyncHandler(async (req, res) => {
         coverImageUrl = coverImage?.url || "";
     }
 
-    const userData = {
-        fullname: fullNameTrimmed,
-        email: emailTrimmed,
-        username: normalizedUsername,
-        avatar: avatarUrl,
-        coverImage: coverImageUrl,
-    };
+    let user;
 
-    // Add password only for regular registration
-    if (!provider) {
-        userData.password = password;
+    if (existedUserByEmail) {
+        // Update existing temp user created by sendOTP
+        existedUserByEmail.fullname = fullNameTrimmed;
+        existedUserByEmail.username = normalizedUsername;
+        if (avatarUrl) existedUserByEmail.avatar = avatarUrl;
+        if (coverImageUrl) existedUserByEmail.coverImage = coverImageUrl;
+
+        if (!provider) {
+            existedUserByEmail.password = password;
+        } else {
+            existedUserByEmail.provider = provider;
+            existedUserByEmail.providerId = providerId;
+            existedUserByEmail.isEmailVerified = true;
+        }
+
+        await existedUserByEmail.save();
+        user = existedUserByEmail;
     } else {
-        userData.provider = provider;
-        userData.providerId = providerId;
+        // Only possible for OAuth social login where OTP wasn't sent
+        const userData = {
+            fullname: fullNameTrimmed,
+            email: emailTrimmed,
+            username: normalizedUsername,
+            avatar: avatarUrl,
+            coverImage: coverImageUrl,
+            provider,
+            providerId,
+            isEmailVerified: true
+        };
+        user = await User.create(userData);
     }
-
-    const user = await User.create(userData);
 
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
@@ -178,7 +231,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production"
     }
 
     return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
@@ -192,7 +245,7 @@ const loginUser = asyncHandler(async (req, res) => {
 })
 
 const logoutUser = asyncHandler(async (req, res) => {
-    
+
     await User.findByIdAndUpdate(
         req.user._id,
         {
@@ -203,7 +256,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     )
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production"
     }
     return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options).json(new ApiResponse(200, {}, "User Logged Out"))
 })
@@ -227,7 +280,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         }
         const options = {
             httpOnly: true,
-            secure: true
+            secure: process.env.NODE_ENV === "production"
         }
         const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id)
 
@@ -281,7 +334,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         req.user?._id,
         {
             $set: {
-                ...(fullName && { fullName }),
+                ...(fullName && { fullname: fullName }),
                 ...(email && { email })
             }
         },
@@ -514,13 +567,13 @@ const resetPasswordUsingOTP = asyncHandler(async (req, res) => {
     );
 });
 const addToWatchHistory = asyncHandler(async (req, res) => {
-    const {videoId} = req.params;
+    const { videoId } = req.params;
     const userId = req.user._id;
     if (!videoId) {
         throw new ApiError(400, "Video ID is required");
     }
     const video = await Video.findById(videoId);
-    if(!video){
+    if (!video) {
         throw new ApiError(404, "Video not found");
     }
     await User.findByIdAndUpdate(

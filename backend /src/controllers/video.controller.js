@@ -204,7 +204,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     if (!videoId) {
         throw new ApiError(400, "Video id is required");
     }
-    const video = await Video.findById(videoId);
+    const video = await Video.findById(videoId).populate('owner', 'username fullname avatar coverImage subscribersCount');
     if (!video) {
         throw new ApiError(404, "Video not found");
     }

@@ -8,16 +8,23 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Expose this so internal profile updates don't need a hard page reload
+  const updateUserSession = (newUserData) => {
+    setUser((prevUser) => ({ ...prevUser, ...newUserData }));
+  };
+
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const currentUser = await authService.getCurrentUser();
-        if (currentUser) {
-          setUser(currentUser.data);
+        const currentUserResponse = await authService.getCurrentUser();
+        
+        if (currentUserResponse) {
+          const userData = currentUserResponse.data?.data || currentUserResponse.data || currentUserResponse;
+          setUser(userData);
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.error("Authentication check failed", error);
+        console.error("Authentication check failed:", error);
       } finally {
         setLoading(false);
       }
@@ -28,7 +35,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const response = await authService.login(credentials);
-    setUser(response.data.user);
+    const loggedInUser = response.data?.data?.user || response.data?.user;
+    setUser(loggedInUser);
     setIsAuthenticated(true);
     return response;
   };
@@ -40,7 +48,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout, updateUserSession }}>
       {!loading && children}
     </AuthContext.Provider>
   );

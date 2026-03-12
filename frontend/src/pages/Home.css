@@ -1,0 +1,576 @@
+/* ==========================================================================
+   Home Page Styles (Mobile-First Architecture)
+   ========================================================================== */
+
+/* 
+  ---------------------------------------------------------
+  1. Base Structure & Resets (Mobile View: < 768px)
+  --------------------------------------------------------- 
+*/
+
+.home-container {
+    width: 100%;
+    min-height: 100vh;
+    background-color: var(--bg-color) !important;
+    /* Deep slate background */
+    color: var(--text-primary) !important;
+    /* Crisp white text */
+    padding-bottom: 80px;
+    /* Space for the mobile bottom nav */
+    font-family: 'Rajdhani', sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 
+  ---------------------------------------------------------
+  2. Hero Section
+  --------------------------------------------------------- 
+*/
+
+.home-hero {
+    position: relative;
+    width: 100%;
+    height: 60vh;
+    /* Takes up 60% of viewport height on mobile */
+    min-height: 400px;
+    background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+    /* Push content to bottom on mobile */
+    padding: 2rem 1.5rem;
+}
+
+/* Gradient overlay to make text readable */
+.home-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.6) 40%,
+            rgba(0, 0, 0, 1) 100%);
+    z-index: 1;
+}
+
+.home-hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.home-hero-badge {
+    display: inline-block;
+    background: var(--accent-gradient);
+    color: #000000;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.4);
+}
+
+.home-hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 1rem 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.home-hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem 0;
+    line-height: 1.4;
+    max-width: 90%;
+}
+
+.home-hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    /* Important for small screens */
+}
+
+.hero-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    width: 100%;
+    /* Full width on mobile */
+}
+
+.hero-btn-primary {
+    background-color: #111111;
+    color: #000000;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+}
+
+.hero-btn-primary:hover,
+.hero-btn-primary:active {
+    background: #E0E0E0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.6);
+}
+
+.hero-btn-secondary {
+    background-color: transparent;
+    color: #ffffff;
+    border: 1px solid #2a2a2a;
+    backdrop-filter: blur(10px);
+}
+
+.hero-btn-secondary:hover,
+.hero-btn-secondary:active {
+    background: var(--surface-color);
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+
+/* 
+  ---------------------------------------------------------
+  3. Main Feed Container (Unified Scroll Area)
+  --------------------------------------------------------- 
+*/
+.home-feed-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background-color: var(--bg-color) !important;
+    min-height: 100vh;
+    /* Unified dark background prevents white flash */
+    flex: 1;
+}
+
+/* 
+  ---------------------------------------------------------
+  3. Categories Scroller
+  --------------------------------------------------------- 
+*/
+
+.categories-section {
+    padding: 0.5rem 1rem 1rem 1rem;
+    margin: 0;
+    margin-top: -1px;
+    /* Pull up 1px to prevent subpixel white gaps under header */
+    background: var(--bg-color) !important;
+    background-color: var(--bg-color) !important;
+    color: var(--text-primary) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: fixed !important;
+    top: 60px !important;
+    left: 240px !important;
+    right: 0 !important;
+    z-index: 999 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* very subtle border */
+}
+
+.categories-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    background-color: #0a0a0a !important;
+    color: #ffffff !important;
+}
+
+.categories-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: #ffffff !important;
+}
+
+.categories-scroll-container {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth iOS scroll */
+    padding-bottom: 0.5rem;
+    /* Space for scrollbar if visible */
+    margin: 0 -1rem;
+    /* Negative margin to let it bleed to screen edges */
+    padding: 0 1rem;
+}
+
+/* Hide scrollbar for cleaner look on mobile */
+.categories-scroll-container::-webkit-scrollbar {
+    display: none;
+}
+
+.categories-scroll-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.category-pill {
+    padding: 0.6rem 1.2rem;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    color: #FFFFFF;
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.category-pill:hover {
+    background: var(--border-color);
+    border-color: var(--border-color);
+    color: #FFFFFF;
+}
+
+.category-pill.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+
+.content-section {
+    padding: 1.5rem 1.5rem 3rem 1.5rem;
+    padding-top: 90px !important;
+    flex: 1;
+    width: 100%;
+    background-color: var(--bg-color) !important;
+    color: var(--text-primary) !important;
+    min-height: calc(100vh - 60px);
+}
+
+.content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.content-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    display: inline-block;
+}
+
+.content-title::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 40%;
+    height: 3px;
+    background: var(--accent-color);
+    border-radius: 2px;
+}
+
+.content-link {
+    color: var(--accent-color);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.2s;
+}
+
+.content-link:hover {
+    color: #E0E0E0;
+}
+
+.grid-container {
+    display: grid;
+    /* MOBILE FIRST: 1 Column */
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+.card {
+    background-color: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover,
+.card:active {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    border-color: var(--border-color);
+}
+
+.card-thumbnail-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    /* 16:9 Aspect Ratio */
+    background: var(--bg-primary);
+}
+
+.card-thumbnail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-duration {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.card-info {
+    padding: 1rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.card-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.card-text {
+    flex: 1;
+    min-width: 0;
+    /* Prevents text from pushing flexbox out */
+}
+
+.card-title {
+    margin: 0 0 0.4rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    /* Truncate to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-channel {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.card-channel:hover {
+    color: var(--text-secondary);
+}
+
+.card-meta {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+/* 
+  ---------------------------------------------------------
+  5. Mobile Bottom Navigation
+  --------------------------------------------------------- 
+*/
+
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #111111;
+    border-bottom: 1px solid #2a2a2a;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0 1rem 0;
+    /* Extra padding for iOS home bar */
+    z-index: 50;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    width: 20%;
+    transition: color 0.2s;
+    background-color: #111111;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.nav-item.active {
+    color: var(--accent-color);
+}
+
+.nav-item-icon {
+    margin-bottom: 2px;
+}
+
+.nav-item-text {
+    font-size: 0.65rem;
+    font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+}
+
+
+/* 
+  ==========================================================================
+   MEDIA QUERIES (Progressive Enhancement)
+  ========================================================================== 
+*/
+
+/* 
+  ---------------------------------------------------------
+  TABLET STYLES (min-width: 768px)
+  --------------------------------------------------------- 
+*/
+@media (min-width: 768px) {
+    .home-container {
+        padding-bottom: 0;
+        /* Remove bottom padding because nav is hidden */
+    }
+
+    .home-hero {
+        height: 50vh;
+        align-items: center;
+        /* Center content vertically */
+        padding: 3rem 4rem;
+    }
+
+    .home-hero::before {
+        /* More horizontal gradient for desktop */
+        background: linear-gradient(to right,
+                var(--bg-color) 0%,
+                rgba(0, 0, 0, 0.8) 40%,
+                rgba(0, 0, 0, 0.2) 100%);
+    }
+
+    .home-hero-content {
+        max-width: 600px;
+        margin: 0;
+        /* Align left */
+    }
+
+    .home-hero-title {
+        font-size: 3.5rem;
+    }
+
+    .home-hero-subtitle {
+        font-size: 1.25rem;
+    }
+
+    .hero-btn {
+        width: auto;
+        /* Buttons sit side by side */
+    }
+
+    /* Grid becomes 2 columns */
+    .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Hide the mobile bottom navigation entirely! */
+    .mobile-bottom-nav {
+        display: none;
+    }
+
+    .content-section {
+        padding: 1.5rem 1.5rem 4rem 1.5rem;
+    }
+
+    .categories-section {
+        padding: 0.5rem 1.5rem 1rem 1.5rem;
+    }
+
+    .categories-scroll-container {
+        margin: 0;
+        padding: 0;
+    }
+}
+
+/* 
+  ---------------------------------------------------------
+  DESKTOP STYLES (min-width: 1024px)
+  --------------------------------------------------------- 
+*/
+@media (min-width: 1024px) {
+    .home-hero {
+        height: 65vh;
+    }
+
+    .home-hero-title {
+        font-size: 4.5rem;
+    }
+
+    /* Enforce exactly 3 columns maximum */
+    .grid-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

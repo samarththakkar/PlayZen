@@ -1,11 +1,69 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+html {
+  background-color: #0a0a0a !important;
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+  height: 100% !important;
+}
+
+body {
+  background-color: #0a0a0a !important;
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+  position: relative !important;
+}
+
+#root {
+  background-color: #0a0a0a !important;
+  min-height: 100vh !important;
+  height: 100% !important;
+}
+
+body::before,
+body::after {
+  content: '' !important;
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 100vh !important;
+  background-color: #0a0a0a !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+
+body::before {
+  top: -100vh !important;
+}
+
+body::after {
+  bottom: -100vh !important;
+}
+
+:root {
+  /* Global Theme Variables */
+  --bg-color: #0a0a0a;
+  --surface-color: #111111;
+  --text-primary: #ffffff;
+  --text-muted: #a0a0a0;
+  --accent-color: #ffffff;
+  --accent-gradient: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  --border-color: #2a2a2a;
+
+  font-family: 'Plus Jakarta Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 500;
+  font-size: 16px;
+
+  color-scheme: dark;
+  color: var(--text-primary);
+  background-color: var(--bg-color);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,21 +71,63 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-body {
+a {
+  font-weight: 600;
+  color: #FFFFFF;
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: #E0E0E0;
+}
+
+html,
+body,
+#root,
+#app,
+#__next {
+  background-color: var(--bg-color) !important;
+  background: var(--bg-color) !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  height: 100%;
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+  color: var(--text-primary) !important;
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
+}
+
+@media screen {
+  html {
+    background-color: #0a0a0a !important;
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0px 1000px #161616 inset !important;
+  background-color: #161616 !important;
+}
+
+input,
+textarea,
+select {
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
 }
 
 h1 {
@@ -40,29 +140,58 @@ button {
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  background-color: var(--surface-color);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s ease;
 }
+
+html {
+  background-color: #0a0a0a !important;
+  min-height: 100% !important;
+}
+
+body {
+  background-color: #0a0a0a !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+}
+
+#root {
+  background-color: #0a0a0a !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+}
+
+div,
+section,
+main,
+aside,
+nav,
+header,
+article {
+  background-color: inherit;
+}
+
 button:hover {
-  border-color: #646cff;
+  border-color: #ffffff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+html, body, #root {
+  background-color: #0a0a0a !important;
+  background: #0a0a0a !important;
+  min-height: 100vh !important;
+}
+
+html::after, body::after {
+  content: '' !important;
+  display: block !important;
+  background-color: #0a0a0a !important;
 }

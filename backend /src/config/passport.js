@@ -9,13 +9,13 @@ passport.use(new GoogleStrategy({
     callbackURL: "/api/v1/users/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        let user = await User.findOne({ 
-            $or: [{ googleId: profile.id }, { email: profile.emails[0].value }] 
+        let user = await User.findOne({
+            $or: [{ googleId: profile.id }, { email: profile.emails[0].value }]
         });
 
         if (!user) {
             const username = profile.emails[0].value.split('@')[0] + Math.random().toString(36).substr(2, 4);
-            
+
             user = await User.create({
                 fullname: profile.displayName,
                 email: profile.emails[0].value,
@@ -23,7 +23,7 @@ passport.use(new GoogleStrategy({
                 googleId: profile.id,
                 provider: 'google',
                 avatar: profile.photos[0]?.value || "",
-                coverImage: "",
+                coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop", // A nice default abstract gradient
                 isEmailVerified: true
             });
         }
