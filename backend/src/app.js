@@ -7,17 +7,13 @@ const app = express();
 // Trigger reload 4
 
 app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'];
-        if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.CORS_ORIGIN === origin) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
+  origin: [
+    "http://localhost:5173",
+    "https://play-zen.vercel.app"
+  ],
+  credentials: true
 }));
-
+app.options('*', cors());
 app.use(express.json({ limit: "16kb" }))
 
 app.use(express.urlencoded({ extended: true, limit: "16kb" }))
