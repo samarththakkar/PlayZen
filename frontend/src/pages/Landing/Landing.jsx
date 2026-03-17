@@ -34,9 +34,7 @@ const Landing = () => {
         <div className="land-nav">
           <div className="land-logo">
             <div className="land-logo-mark">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="white">
-                <path d="M5 3l14 9-14 9V3z"/>
-              </svg>
+              <img src="/logo.png" alt="PlayZen Logo" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
             </div>
             <span className="land-logo-name">PlayZen</span>
           </div>

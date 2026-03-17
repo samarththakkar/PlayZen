@@ -15,9 +15,7 @@ const AuthLayout = () => {
       <header className="auth-top-bar">
         <Link to="/" className="auth-top-brand">
           <div className="auth-top-logo">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="white">
-              <path d="M5 3l14 9-14 9V3z"/>
-            </svg>
+            <img src="/logo.png" alt="PlayZen Logo" style={{ width: '45px', height: '35px', objectFit: 'contain' }} />
           </div>
           <span className="auth-top-name">PlayZen</span>
         </Link>

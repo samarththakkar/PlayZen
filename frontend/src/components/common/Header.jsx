@@ -153,9 +153,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
         </button>
         <Link to="/" className="brand-link">
           <div className="brand-logo-icon">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
-              <path d="M8 5v14l11-7z" />
-            </svg>
+             <img src="/logo.png" alt="PlayZen Logo" style={{ width: '45px', height: '35px', objectFit: 'contain' }} />
           </div>
           <span className="brand-name">PlayZen</span>
         </Link>

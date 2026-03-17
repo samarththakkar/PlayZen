@@ -64,8 +64,8 @@
 }
 
 .brand-logo-icon {
-    width: 28px;
-    height: 28px;
+    width: 50px;
+    height: 40px;
     background: var(--primary);
     border-radius: 8px;
     display: flex;
@@ -78,9 +78,9 @@
 
 .brand-name {
     font-family: 'Syne', 'Orbitron', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    /* letter-spacing: -0.01em; */
     color: #ffffff;
     white-space: nowrap;
 }
