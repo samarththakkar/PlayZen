@@ -4,7 +4,6 @@ import { Comment } from "../models/comments.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Video } from "../models/video.model.js";
 import { Like } from "../models/likes.model.js";
-import mongoose from "mongoose";
 
 const addVideoComment = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
@@ -40,40 +39,8 @@ const getVideoComment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Video ID is required");
     }
 
-    const aggregate = Comment.aggregate([
-        {
-            $match: {
-                video: new mongoose.Types.ObjectId(videoId)
-            }
-        },
-        {
-            $lookup: {
-                from: "users",
-                localField: "owner",
-                foreignField: "_id",
-                as: "owner",
-                pipeline: [
-                    {
-                        $project: {
-                            username: 1,
-                            fullname: 1,
-                            avatar: 1
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            $addFields: {
-                owner: { $first: "$owner" }
-            }
-        },
-        {
-            $sort: { createdAt: -1 }
-        }
-    ]);
-
-    const comments = await Comment.aggregatePaginate(aggregate, {
+    const comments = await Comment.getPaginatedVideoComments({
+        videoId,
         page: Math.max(1, Number(page)),
         limit: Math.min(50, Number(limit))
     });

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Menu, Search, Upload, Bell, ArrowLeft, User, LogOut, Video, Settings, PlusCircle, Plus, Clock, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import useSearch from '../../hooks/useSearch';
+import useNotifications from '../../hooks/useNotifications';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import './Header.css';
 
@@ -11,10 +13,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   
   // Search state
-  const [searchQuery, setSearchQuery] = useState('');
+  const { query: searchQuery, setQuery: setSearchQuery, suggestions: liveSuggestions, loading: searchLoading } = useSearch();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchHistory, setSearchHistory] = useState([]);
-  const [liveSuggestions, setLiveSuggestions] = useState([]);
   
   // Dropdown states
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -32,26 +33,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
     }
   }, []);
 
-  // Fetch live suggestions when user types
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (!searchQuery.trim() || searchQuery.length < 2) {
-        setLiveSuggestions([]);
-        return;
-      }
-      try {
-        const res = await axios.get(`/api/v1/videos/get-all-videos?query=${encodeURIComponent(searchQuery)}&limit=5`);
-        const videos = res.data?.data?.docs || res.data?.docs || [];
-        setLiveSuggestions(videos);
-      } catch (err) {
-        console.error("Error fetching suggestions", err);
-      }
-    };
-
-    // Debounce to avoid spamming the backend
-    const timeoutId = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  // Fetch live suggestions when user types is now handled by useSearch
 
   // Handle outside clicks
   useEffect(() => {
@@ -71,6 +53,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
   }, []);
 
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications(user?._id || user?.id);
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
@@ -259,16 +242,25 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
           <button className="header-icon-btn" onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false); }}>
             <Bell size={22} />
             {/* Notification Badge */}
-            <span style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }}></span>
+            {unreadCount > 0 && (
+  <span className="notif-badge">
+    {unreadCount > 9 ? '9+' : unreadCount}
+  </span>
+)}
           </button>
 
           {isNotifOpen && (
-            <div className="dropdown-menu">
-              <div className="dropdown-header">
+            <div className="dropdown-menu notification-dropdown">
+              <div className="dropdown-header notif-header">
                 <span className="dropdown-name">Notifications</span>
+                <button className="mark-all-read-btn">Mark all read</button>
               </div>
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color:'#ffffff', fontSize: '0.9rem' }}>
-                No new notifications.
+              <div className="notif-empty-state">
+                <div className="notif-empty-icon">
+                  <Bell size={32} />
+                </div>
+                <p className="notif-empty-title">All caught up!</p>
+                <p className="notif-empty-text">No new notifications at the moment.</p>
               </div>
             </div>
           )}
@@ -296,25 +288,26 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
           )}
 
           {isProfileOpen && user && (
-            <div className="dropdown-menu">
-              <div className="dropdown-header">
+            <div className="dropdown-menu profile-dropdown">
+              <div className="dropdown-header profile-header">
+                <div className="profile-avatar-gradient">
                   <img src={displayAvatar} alt="Profile" className="dropdown-large-avatar" />
+                </div>
                 <div className="dropdown-header-info">
-                  <span className="dropdown-name">{currentUser.fullname}</span>
-                  <span className="dropdown-email">{currentUser.email}</span>
+                  <span className="dropdown-name">{currentUser.fullname || currentUser.username || "User"}</span>
+                  <span className="dropdown-email">{currentUser.email || "No email provided"}</span>
                 </div>
               </div>
 
-              <div className="dropdown-body">
+              <div className="dropdown-body profile-body">
                 <Link to="/profile" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
-                  <User size={18} /> Profile
+                  <User size={17} /> <span>Profile</span>
                 </Link>
-                <div className="dropdown-divider"></div>
                 <button className="dropdown-item" onClick={() => { setIsProfileOpen(false); navigate('/login'); }}>
-                  <Plus size={18} /> Add Account
+                  <Plus size={17} /> <span>Add Account</span>
                 </button>
                 <button className="dropdown-item logout-item" onClick={handleLogout}>
-                  <LogOut size={18} /> Log out
+                  <LogOut size={17} /> <span>Log out</span>
                 </button>
               </div>
             </div>

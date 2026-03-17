@@ -8,7 +8,8 @@ import {
     getVideoById,
     updateVideoDetails,
     userVideos,
-    getStudioVideos
+    getStudioVideos,
+    getSubscriptionsFeed
 } from "../controllers/video.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -51,6 +52,8 @@ router.route("/get-all-videos").get(getAllVideos);
 router.route("/get-all-shorts").get(getAllShorts);
 router.route("/is-published/:videoId").get(verifyJWT, isPublished);
 router.route("/delete-video/:videoId").delete(verifyJWT, deleteVideo);
+router.get('/subscriptions-feed', verifyJWT, getSubscriptionsFeed);
+
 export default router;
 
 

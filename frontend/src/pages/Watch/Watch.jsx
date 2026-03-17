@@ -1,30 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  ThumbsUp, ThumbsDown, Share2, PlusSquare, 
+  ThumbsUp, ThumbsDown, Share2, BookmarkPlus, 
   MoreHorizontal, Flag, MessageSquare,
-  Link, Facebook, Twitter
+  Link, Facebook, Twitter, BookmarkCheck
 } from 'lucide-react';
 import api from '../../services/api';
 import './Watch.css';
 import Skeleton from '../../components/ui/Skeleton';
 import { getAvatarUrl } from '../../utils/avatarUtils';
+import { getSimilarVideos } from '../../services/video.service';
+import useLike from '../../hooks/useLike';
+import useSubscription from '../../hooks/useSubscription';
+import useWatchProgress from '../../hooks/useWatchProgress';
+import VideoCard from '../../components/video/VideoCard';
+import { useAuth } from '../../hooks/useAuth';
 
 const Watch = () => {
   const { videoId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Interactive States
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [similarVideos, setSimilarVideos] = useState([]);
+
+  const videoRef = useRef(null);
+  useWatchProgress(videoId, videoRef);
+
+  const { isLiked, likesCount, toggle: toggleLike } = useLike(videoId, "video", video?.likes || 0);
   
-  const [likeStatus, setLikeStatus] = useState(null); // 'liked', 'disliked', or null
-  const [likeCount, setLikeCount] = useState(0);
+  const ownerId = video?.owner?._id || video?.owner?.id || video?.owner;
+  const { isSubscribed: isChannelSubscribed, subscribersCount, toggle: toggleSubscribe } = useSubscription(ownerId);
   
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Check if video is in watch later
+  useEffect(() => {
+    if (videoId && user) {
+      api.get(`/watch-later/${videoId}`)
+        .then(res => setIsSaved(res.data?.data?.saved || false))
+        .catch(() => {});
+    }
+  }, [videoId, user]);
+
+  // Record this video in watch history (fire-and-forget, guarded against StrictMode double-mount)
+  const historyRecorded = useRef(null);
+  useEffect(() => {
+    if (videoId && user && historyRecorded.current !== videoId) {
+      historyRecorded.current = videoId;
+      api.post('/watch-history', { videoId }).catch(() => {});
+    }
+  }, [videoId, user]);
 
   useEffect(() => {
     const fetchVideoDetails = async () => {
@@ -35,12 +64,6 @@ const Watch = () => {
         if (response.data.success) {
           const videoData = response.data.data;
           setVideo(videoData);
-          setLikeCount(videoData.likes || 0);
-          
-          if (videoData.owner) {
-             setSubscriberCount(videoData.owner.subscribersCount || 0);
-             // In a real app, you'd check if the current user is subscribed here
-          }
         } else {
           setError("Failed to load video details.");
         }
@@ -52,8 +75,14 @@ const Watch = () => {
       }
     };
 
+    const fetchSimilar = async () => {
+      const { data } = await getSimilarVideos(videoId);
+      if (data) setSimilarVideos(data.docs || data || []);
+    };
+
     if (videoId) {
       fetchVideoDetails();
+      fetchSimilar();
     }
   }, [videoId]);
 
@@ -92,30 +121,11 @@ const Watch = () => {
   const avatar = getAvatarUrl(owner, channelName);
 
   // Handlers
-  const handleSubscribe = () => {
-    if (isSubscribed) {
-      setSubscriberCount(prev => Math.max(0, prev - 1));
-    } else {
-      setSubscriberCount(prev => prev + 1);
-    }
-    setIsSubscribed(!isSubscribed);
-  };
-
-  const handleLike = () => {
-    if (likeStatus === 'liked') {
-      setLikeStatus(null);
-      setLikeCount(prev => Math.max(0, prev - 1));
-    } else {
-      setLikeStatus('liked');
-      setLikeCount(prev => likeStatus === null ? prev + 1 : prev + 1); // If jumping from dislike to like, just add 1 relative to base, logic can be complex
-    }
-  };
-
+  const handleLike = () => toggleLike();
+  const handleSubscribe = () => toggleSubscribe();
+  
   const handleDislike = () => {
-    if (likeStatus === 'liked') {
-      setLikeCount(prev => Math.max(0, prev - 1));
-    }
-    setLikeStatus(likeStatus === 'disliked' ? null : 'disliked');
+    // Left as stub since useLike only handles like
   };
 
   const handleShareClick = () => {
@@ -132,9 +142,9 @@ const Watch = () => {
     <div className="watch-page-container">
       <div className="watch-content">
         
-        {/* Main Video Player */}
         <div className="video-player-wrapper">
           <video 
+            ref={videoRef}
             src={video.videoFile} 
             poster={video.thumbnail}
             controls 
@@ -157,16 +167,16 @@ const Watch = () => {
                 onClick={() => navigate(`/channel/${owner.username || owner._id}`)}
               />
               <div className="watch-channel-text">
-                <h3 onClick={() => navigate(`/channel/${owner.username || owner._id}`)}>
+                <h3>
                   {channelName}
                 </h3>
-                <span>{subscriberCount} subscribers</span>
+                <span>{subscribersCount} subscribers</span>
               </div>
               <button 
-                className={`watch-subscribe-btn ${isSubscribed ? 'subscribed' : ''}`}
+                className={`watch-subscribe-btn ${isChannelSubscribed ? 'subscribed' : ''}`}
                 onClick={handleSubscribe}
               >
-                {isSubscribed ? 'Subscribed' : 'Subscribe'}
+                {isChannelSubscribed ? 'Subscribed' : 'Subscribe'}
               </button>
             </div>
 
@@ -174,17 +184,17 @@ const Watch = () => {
             <div className="watch-actions">
               <div className="watch-action-group">
                 <button 
-                  className={`watch-action-btn border-right-btn ${likeStatus === 'liked' ? 'active-action' : ''}`}
+                  className={`watch-action-btn border-right-btn ${isLiked ? 'active-action' : ''}`}
                   onClick={handleLike}
                 >
-                  <ThumbsUp size={20} fill={likeStatus === 'liked' ? 'currentColor' : 'none'} /> 
-                  <span>{likeCount}</span>
+                  <ThumbsUp size={20} fill={isLiked ? 'currentColor' : 'none'} /> 
+                  <span>{likesCount}</span>
                 </button>
                 <button 
-                  className={`watch-action-btn ${likeStatus === 'disliked' ? 'active-action' : ''}`}
+                  className={`watch-action-btn`}
                   onClick={handleDislike}
                 >
-                  <ThumbsDown size={20} fill={likeStatus === 'disliked' ? 'currentColor' : 'none'} />
+                  <ThumbsDown size={20} fill={'none'} />
                 </button>
               </div>
               
@@ -210,8 +220,17 @@ const Watch = () => {
                 )}
               </div>
               
-              <button className="watch-action-btn">
-                <PlusSquare size={20} /> <span>Save</span>
+              <button 
+                className={`watch-action-btn ${isSaved ? 'active-action' : ''}`}
+                onClick={() => {
+                  if (!user) return;
+                  api.post(`/watch-later/toggle/${videoId}`)
+                    .then(res => setIsSaved(res.data?.data?.saved ?? !isSaved))
+                    .catch(() => {});
+                }}
+              >
+                {isSaved ? <BookmarkCheck size={20} fill="currentColor" /> : <BookmarkPlus size={20} />}
+                <span>{isSaved ? 'Saved' : 'Save'}</span>
               </button>
               
               <button className="watch-action-btn icon-only-btn">
@@ -247,10 +266,18 @@ const Watch = () => {
         </div>
       </div>
 
-      {/* Recommended Videos Sidebar (Placeholder) */}
+      {/* Recommended Videos Sidebar */}
       <div className="watch-sidebar">
         <h3>Up next</h3>
-        <p className="sidebar-placeholder-text">Recommended videos will appear here.</p>
+        <div className="similar-videos-list" style={{display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem'}}>
+          {similarVideos.length > 0 ? (
+            similarVideos.map(simVideo => (
+              <VideoCard key={simVideo._id || simVideo.id} video={simVideo} />
+            ))
+          ) : (
+            <p className="sidebar-placeholder-text">No recommended videos found.</p>
+          )}
+        </div>
       </div>
 
     </div>

@@ -37,6 +37,10 @@ const MainLayout = () => {
 
   return (
     <div className="app-layout">
+      {/* Ambient Background Orbs */}
+      <div className="bg-orb-1"></div>
+      <div className="bg-orb-2"></div>
+
       {/* 1. Global Header (Fixed at top) */}
       <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
 

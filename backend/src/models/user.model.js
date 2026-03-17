@@ -2,6 +2,25 @@ import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
+const watchHistoryOwnerProjection = {
+    fullname: 1,
+    username: 1,
+    avatar: 1
+};
+
+const buildWatchHistoryOwnerLookupStage = () => ({
+    $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+            {
+                $project: watchHistoryOwnerProjection
+            }
+        ]
+    }
+});
 
 const userSchema = new Schema(
     {
@@ -118,5 +137,90 @@ userSchema.methods.generateRefreshToken = function () {
     )
 }
 
-export const User = mongoose.model("User", userSchema)
+userSchema.statics.getWatchHistory = function (userId) {
+    return this.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(userId)
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    buildWatchHistoryOwnerLookupStage(),
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]);
+};
 
+userSchema.statics.getChannelProfile = function ({ username, subscriberId }) {
+    const normalizedUsername = username?.toLowerCase();
+    const subscriberObjectId = subscriberId ? new mongoose.Types.ObjectId(subscriberId) : null;
+
+    return this.aggregate([
+        {
+            $match: {
+                username: normalizedUsername
+            }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
+            }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        },
+        {
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers"
+                },
+                channelsSubscribedToCount: {
+                    $size: "$subscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: { $in: [subscriberObjectId, "$subscribers.subscriber"] },
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                fullname: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1
+            }
+        }
+    ]);
+};
+
+export const User = mongoose.model("User", userSchema)

@@ -17,9 +17,9 @@
     position: relative;
     width: 100%;
     height: 250px;
-    background: #111111 !important;
-    background-color: #111111 !important;
-    border-bottom: 1px solid #2a2a2a;
+    background: var(--surface-color) !important;
+    background-color: var(--surface-color) !important;
+    border-bottom: 1px solid var(--border-color);
     overflow: hidden;
 }
 
@@ -30,10 +30,11 @@
     opacity: 0.8;
 }
 
-.profile-cover-placeholder {
+.profile-banner-inner {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #0a0a0a 100%) !important;
+    background: linear-gradient(135deg, var(--surface-color) 0%, var(--surface-hover-color) 50%, var(--bg-color) 100%) !important;
+    /* Subtle dark gradient placeholder */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -59,10 +60,10 @@
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    border: 4px solid #0a0a0a;
+    border: 4px solid var(--bg-color);
     /* Match background to carve out */
-    background: #111111 !important;
-    background-color: #111111 !important;
+    background: var(--surface-color) !important;
+    background-color: var(--surface-color) !important;
     overflow: hidden;
     flex-shrink: 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
@@ -84,7 +85,7 @@
     font-weight: 800;
     font-family: 'Orbitron', sans-serif;
     color: #ffffff !important;
-    background: linear-gradient(135deg, #2a2a2a 0%, #111111 100%) !important;
+    background: linear-gradient(135deg, var(--border-color) 0%, var(--surface-color) 100%) !important;
 }
 
 .profile-details {
@@ -139,7 +140,7 @@
 .profile-btn-subscribe {
     background: #ffffff !important;
     background-color: #ffffff !important;
-    color: #0a0a0a !important;
+    color: var(--bg-color) !important;
 }
 
 .profile-btn-subscribe:hover {
@@ -148,22 +149,22 @@
 }
 
 .profile-btn-edit {
-    background: #111111 !important;
-    background-color: #111111 !important;
+    background: var(--surface-color) !important;
+    background-color: var(--surface-color) !important;
     color: #ffffff !important;
-    border: 1px solid #2a2a2a;
+    border: 1px solid var(--border-color);
 }
 
 .profile-btn-edit:hover {
-    background: #222222 !important;
+    background: var(--surface-hover-color) !important;
     border-color: #ffffff;
 }
 
 /* 3. Navigation Tabs */
 .profile-tabs-wrapper {
     width: 100%;
-    border-bottom: 1px solid #2a2a2a;
-    background-color: #0a0a0a !important;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-color) !important;
 }
 
 .profile-tabs {
@@ -203,7 +204,7 @@
     width: 100%;
     padding: 2rem;
     flex: 1;
-    background-color: #0a0a0a !important;
+    background-color: var(--bg-color) !important;
 }
 
 .profile-grid-container {
@@ -216,9 +217,16 @@
     text-align: center;
     padding: 4rem 2rem;
     color: #a0a0a0 !important;
-    background: #111111 !important;
-    background-color: #111111 !important;
-    border: 1px dashed #2a2a2a;
+    background: var(--surface-color) !important;
+    background-color: var(--surface-color) !important;
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+}
+
+.profile-stats-card {
+    background: var(--surface-color) !important;
+    background-color: var(--surface-color) !important;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
 }
 

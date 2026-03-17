@@ -3,12 +3,16 @@ import { Play, Info, Flame, Music, Video, Laptop, GraduationCap, Radio, Mic } fr
 import VideoCard from '../components/video/VideoCard';
 import Skeleton from '../components/ui/Skeleton';
 import api from '../services/api';
+import { getPersonalizedFeed, getContinueWatching } from '../services/video.service';
+import { useAuth } from '../hooks/useAuth';
 import './Home.css';
 
 const Home = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [continueWatching, setContinueWatching] = useState([]);
+  const { user } = useAuth();
   const [dynamicCategories, setDynamicCategories] = useState([
     { name: "All", icon: <Flame size={16} /> }
   ]);
@@ -28,18 +32,31 @@ const Home = () => {
   const fetchVideos = async (category = "All") => {
     setLoading(true);
     try {
-      const url = category === "All" 
-        ? '/videos/get-all-videos' 
-        : `/videos/get-all-videos?category=${encodeURIComponent(category)}`;
+      let fetchedVideos = [];
+      if (category === "All" && user) {
+        const { data, error } = await getPersonalizedFeed();
+        if (!error && data) {
+          fetchedVideos = data.docs || data || [];
+        }
+      }
       
-      const response = await api.get(url);
-      if (response.data.success) {
-        const fetchedVideos = response.data.data.docs || [];
-        setVideos(fetchedVideos);
+      // Fallback to public feed if personalized feed returned nothing (e.g. 401 or empty)
+      if (fetchedVideos.length === 0) {
+        const url = category === "All" 
+          ? '/videos/get-all-videos' 
+          : `/videos/get-all-videos?category=${encodeURIComponent(category)}`;
+        
+        const response = await api.get(url);
+        if (response.data.success) {
+          fetchedVideos = response.data.data.docs || [];
+        }
+      }
+      
+      setVideos(fetchedVideos);
 
-        // Derive categories from the "All" feed to populate the filter bar
-        if (category === "All") {
-          const uniqueCats = [...new Set(fetchedVideos.map(v => v.category))].filter(Boolean);
+      // Derive categories from the "All" feed to populate the filter bar
+      if (category === "All") {
+        const uniqueCats = [...new Set(fetchedVideos.map(v => v.category))].filter(Boolean);
           const newCats = [
             { name: "All", icon: <Flame size={16} /> },
             ...uniqueCats.map(name => ({
@@ -49,7 +66,6 @@ const Home = () => {
           ];
           setDynamicCategories(newCats);
         }
-      }
     } catch (error) {
       console.error("Error fetching videos:", error);
     } finally {
@@ -59,7 +75,21 @@ const Home = () => {
 
   useEffect(() => {
     fetchVideos(activeCategory);
-  }, [activeCategory]);
+  }, [activeCategory, user]);
+
+  useEffect(() => {
+    if (user) {
+      const fetchContinue = async () => {
+        const { data } = await getContinueWatching();
+        if (data) {
+          setContinueWatching(data.docs || data || []);
+        }
+      };
+      fetchContinue();
+    } else {
+      setContinueWatching([]);
+    }
+  }, [user]);
 
   return (
     <div className="home-container">
@@ -92,8 +122,23 @@ const Home = () => {
           </div>
         </div>
 
-        {/* 3. Featured Content Grid */}
+        {/* 3. Continue Watching & Featured Content Grid */}
         <div className="content-section">
+          {continueWatching.length > 0 && activeCategory === "All" && (
+            <div className="continue-watching-section mb-6">
+              <h2 className="text-xl font-bold mb-4" style={{display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '1rem'}}>
+                <Play size={20} fill="currentColor" /> Continue Watching
+              </h2>
+              <div className="continue-watching-scroll" style={{display: 'flex', overflowX: 'auto', gap: '1rem', paddingBottom: '1rem', paddingLeft: '1rem'}}>
+                {continueWatching.map(video => (
+                  <div key={video._id} style={{minWidth: '280px', flex: '0 0 auto'}}>
+                    <VideoCard video={video.video || video} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid-container">
             {loading ? (
               [...Array(12)].map((_, i) => (

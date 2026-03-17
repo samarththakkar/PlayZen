@@ -1,10 +1,11 @@
 .settings-page-container {
     padding: 2rem;
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 70px);
     display: flex;
     flex-direction: column;
+    background-color: #0D0D0D !important;
 }
 
 .settings-header {

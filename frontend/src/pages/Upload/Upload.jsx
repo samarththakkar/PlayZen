@@ -3,432 +3,494 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { Upload as UploadIcon, Image as ImageIcon, Video, Loader2, AlertCircle, X, Crop } from 'lucide-react';
+import {
+  Upload as UploadIcon, Image as ImageIcon, Video,
+  Loader2, AlertCircle, X, Crop, Info,
+  ArrowRight, ArrowLeft, Check, Eye, Settings, FileText
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import './Upload.css';
 
-// Helper function to initialize center crop
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
-    return centerCrop(
-      makeAspectCrop(
-        {
-          unit: '%',
-          width: 90,
-        },
-        aspect,
-        mediaWidth,
-        mediaHeight,
-      ),
-      mediaWidth,
-      mediaHeight,
-    )
+  return centerCrop(
+    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
+    mediaWidth, mediaHeight,
+  );
 }
 
-const Upload = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth(); 
-  
-  if (!user) {
-      navigate('/login');
-  }
+const STEPS = [
+  { id: 1, label: 'Details',  icon: FileText  },
+  { id: 2, label: 'Media',    icon: Video     },
+  { id: 3, label: 'Settings', icon: Settings  },
+  { id: 4, label: 'Review',   icon: Eye       },
+];
 
+const Upload = () => {
+  const navigate  = useNavigate();
+  const { user }  = useAuth();
+  if (!user) { navigate('/login'); }
+
+  /* ── form data ── */
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'Other',
-    isShort: 'false'
+    title: '', description: '', category: 'Other',
+    isShort: 'false', visibility: 'public',
   });
-  
-  // Video States
-  const [videoFile, setVideoFile] = useState(null);
+
+  /* ── video ── */
+  const [videoFile,       setVideoFile]       = useState(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
-  
-  // Thumbnail Cropping States
-  const [thumbnailFile, setThumbnailFile] = useState(null); // The final Blob sent to server
-  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState(''); 
-  const [imgSrc, setImgSrc] = useState(''); // The raw Base64 image loaded into the cropper
-  const [crop, setCrop] = useState();
+
+  /* ── thumbnail / crop ── */
+  const [thumbnailFile,       setThumbnailFile]       = useState(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState('');
+  const [imgSrc,    setImgSrc]    = useState('');
+  const [crop,      setCrop]      = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
-  const [isCropping, setIsCropping] = useState(false);
-  
+  const [isCropping,    setIsCropping]    = useState(false);
   const imgRef = useRef(null);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  /* ── ui state ── */
+  const [currentStep,    setCurrentStep]    = useState(1);
+  const [loading,        setLoading]        = useState(false);
+  const [error,          setError]          = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  /* ── helpers ── */
+  const handleInputChange = (e) =>
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const goToStep = (step) => { setError(''); setCurrentStep(step); };
+
+  const validateStep = (step) => {
+    if (step === 1) {
+      if (!formData.title.trim())       { setError('Please enter a video title.');       return false; }
+      if (!formData.description.trim()) { setError('Please enter a description.');       return false; }
+    }
+    if (step === 2) {
+      if (!videoFile)     { setError('Please upload a video file.');            return false; }
+      if (!thumbnailFile) { setError('Please upload and crop a thumbnail.');    return false; }
+    }
+    return true;
   };
 
-  /* ----- VIDEO HANDLING ----- */
+  const handleNext = () => {
+    if (validateStep(currentStep)) goToStep(currentStep + 1);
+  };
+
+  const handleBack = () => { setError(''); goToStep(currentStep - 1); };
+
+  /* ── video ── */
   const handleVideoChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setVideoFile(file);
-      setVideoPreviewUrl(URL.createObjectURL(file));
-      // Reset error if valid
+    if (e.target.files?.[0]) {
+      setVideoFile(e.target.files[0]);
+      setVideoPreviewUrl(URL.createObjectURL(e.target.files[0]));
       setError('');
     }
   };
+  const removeVideo = () => { setVideoFile(null); setVideoPreviewUrl(''); };
 
-  const removeVideo = () => {
-      setVideoFile(null);
-      setVideoPreviewUrl('');
-  };
-
-  /* ----- THUMBNAIL HANDLING ----- */
+  /* ── thumbnail ── */
   const onSelectFile = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setCrop(undefined) // Makes crop preview update between images.
-      const reader = new FileReader()
-      reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''))
-      reader.readAsDataURL(e.target.files[0])
+    if (e.target.files?.length > 0) {
+      setCrop(undefined);
+      const reader = new FileReader();
+      reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''));
+      reader.readAsDataURL(e.target.files[0]);
       setIsCropping(true);
     }
-  }
-
+  };
   const onImageLoad = (e) => {
-    const { width, height } = e.currentTarget
-    // Start with a 16:9 aspect ratio crop covering 90% of the image
-    setCrop(centerAspectCrop(width, height, 16 / 9))
-  }
-
-  // Generate cropped preview
+    const { width, height } = e.currentTarget;
+    setCrop(centerAspectCrop(width, height, 16 / 9));
+  };
   const handleCropComplete = () => {
     if (!completedCrop || !imgRef.current) return;
-    
     const image = imgRef.current;
-    
-    const scaledWidth = image.naturalWidth / image.width;
-    const scaledHeight = image.naturalHeight / image.height;
-    
-    const cropX = completedCrop.x * scaledWidth;
-    const cropY = completedCrop.y * scaledWidth;
-    
-    // Safety check for empty crops
-    if (completedCrop.width === 0 || completedCrop.height === 0) {
-       setIsCropping(false);
-       setImgSrc('');
-       return;
-    }
-
-    const cropWidth = completedCrop.width * scaledWidth;
-    const cropHeight = completedCrop.height * scaledHeight;
-
+    const sw = image.naturalWidth  / image.width;
+    const sh = image.naturalHeight / image.height;
+    if (completedCrop.width === 0 || completedCrop.height === 0) { setIsCropping(false); setImgSrc(''); return; }
     const canvas = document.createElement('canvas');
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
+    canvas.width  = completedCrop.width  * sw;
+    canvas.height = completedCrop.height * sh;
     const ctx = canvas.getContext('2d');
-
     if (!ctx) return;
-
-    ctx.drawImage(
-      image,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      cropWidth,
-      cropHeight
-    );
-
-    // Convert canvas to blob for form submission
+    ctx.drawImage(image, completedCrop.x * sw, completedCrop.y * sw, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
     canvas.toBlob((blob) => {
-      if (!blob) {
-        console.error('Canvas is empty');
-        return;
-      }
-      // Give the blob a name so multer recognises it as an image file
-      const croppedFile = new File([blob], "thumbnail.jpg", { type: "image/jpeg" });
-      setThumbnailFile(croppedFile);
+      if (!blob) return;
+      setThumbnailFile(new File([blob], 'thumbnail.jpg', { type: 'image/jpeg' }));
       setThumbnailPreviewUrl(URL.createObjectURL(blob));
       setIsCropping(false);
       setImgSrc('');
     }, 'image/jpeg', 0.95);
   };
+  const cancelCrop     = () => { setIsCropping(false); setImgSrc(''); };
+  const removeThumbnail = () => { setThumbnailFile(null); setThumbnailPreviewUrl(''); };
 
-  const cancelCrop = () => {
-      setIsCropping(false);
-      setImgSrc('');
-  };
-
-  const removeThumbnail = () => {
-      setThumbnailFile(null);
-      setThumbnailPreviewUrl('');
-  }
-
-  /* ----- SUBMISSION ----- */
+  /* ── submit ── */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (!formData.title || !formData.description) {
-      setError('Title and description are required.');
-      return;
-    }
-    if (!videoFile) {
-      setError('Please upload a video file.');
-      return;
-    }
-    if (!thumbnailFile) {
-      setError('Please upload and crop a thumbnail image.');
-      return;
-    }
-
+    if (!validateStep(1) || !validateStep(2)) return;
     setLoading(true);
     setUploadProgress(0);
-
     try {
-      const uploadData = new FormData();
-      uploadData.append('title', formData.title);
-      uploadData.append('description', formData.description);
-      uploadData.append('category', formData.category);
-      uploadData.append('isShort', formData.isShort); 
-      uploadData.append('videoFile', videoFile);
-      uploadData.append('thumbnail', thumbnailFile);
-
-      await axios.post('/api/v1/videos/upload-video', uploadData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-        }
+      const data = new FormData();
+      Object.entries(formData).forEach(([k, v]) => data.append(k, v));
+      data.append('videoFile',  videoFile);
+      data.append('thumbnail',  thumbnailFile);
+      await axios.post('/api/v1/videos/upload-video', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) =>
+          setUploadProgress(Math.round((e.loaded * 100) / e.total)),
       });
-      
       navigate('/channel');
     } catch (err) {
-      console.error("Upload error", err);
-      setError(err.response?.data?.message || 'Failed to upload video. Please try again.');
+      setError(err.response?.data?.message || 'Failed to upload. Please try again.');
     } finally {
       setLoading(false);
       setUploadProgress(0);
     }
   };
 
+  /* ── review labels ── */
+  const typeLabel = formData.isShort === 'true' ? 'Short' : 'Regular Video';
+  const visLabel  = { public: 'Public', unlisted: 'Unlisted', private: 'Private' }[formData.visibility];
+
   return (
     <div className="upload-page">
-    <div className="upload-page-container">
+      <div className="upload-page-container">
 
-      {/* Progress Overlay */}
-      {loading && (
-        <div className="upload-progress-overlay">
-           <div className="upload-progress-modal">
-               <Loader2 size={48} className="spinner" style={{ animation: 'spin 1s linear infinite' }} />
-               <h3 className="progress-title">Uploading Video...</h3>
-               
-               <div className="progress-bar-container">
-                   <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
-               </div>
-               
-               <div className="progress-stats">
-                   <span className="progress-percent">{uploadProgress}%</span>
-                   <span className="progress-status">
-                       {uploadProgress < 100 ? 'Uploading to server...' : 'Processing video... Please wait'}
-                   </span>
-               </div>
-           </div>
-        </div>
-      )}
-      
-      {/* Cropper Modal Overlay */}
-      {isCropping && imgSrc && (
-        <div className="crop-modal-overlay">
-           <div className="crop-modal-content">
+        {/* ── PROGRESS OVERLAY ── */}
+        {loading && (
+          <div className="upload-progress-overlay">
+            <div className="upload-progress-modal">
+              <Loader2 size={44} className="upload-spinner" />
+              <h3 className="progress-title">Uploading Video…</h3>
+              <div className="progress-bar-container">
+                <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }} />
+              </div>
+              <div className="progress-stats">
+                <span className="progress-percent">{uploadProgress}%</span>
+                <span className="progress-status">
+                  {uploadProgress < 100 ? 'Uploading to server…' : 'Processing… Please wait'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── CROP MODAL ── */}
+        {isCropping && imgSrc && (
+          <div className="crop-modal-overlay">
+            <div className="crop-modal-content">
               <div className="crop-modal-header">
-                  <h3><Crop size={20} /> Crop Thumbnail</h3>
-                  <button type="button" onClick={cancelCrop} className="header-icon-btn"><X size={20}/></button>
+                <h3><Crop size={18} /> Crop Thumbnail</h3>
+                <button type="button" onClick={cancelCrop} className="crop-close-btn"><X size={18} /></button>
               </div>
               <div className="crop-modal-body">
-                  <ReactCrop 
-                      crop={crop} 
-                      onChange={(_, percentCrop) => setCrop(percentCrop)} 
-                      onComplete={(c) => setCompletedCrop(c)}
-                      aspect={16 / 9}
-                  >
-                        <img 
-                            ref={imgRef} 
-                            alt="Crop preview" 
-                            src={imgSrc} 
-                            onLoad={onImageLoad}
-                            style={{ maxHeight: '60vh', objectFit: 'contain' }}
-                        />
-                  </ReactCrop>
+                <ReactCrop crop={crop} onChange={(_, p) => setCrop(p)} onComplete={(c) => setCompletedCrop(c)} aspect={16 / 9}>
+                  <img ref={imgRef} alt="Crop" src={imgSrc} onLoad={onImageLoad} style={{ maxHeight: '60vh', objectFit: 'contain' }} />
+                </ReactCrop>
               </div>
               <div className="crop-modal-footer">
-                  <button type="button" onClick={cancelCrop} className="crop-btn secondary">Cancel</button>
-                  <button type="button" onClick={handleCropComplete} className="crop-btn primary">Crop & Save</button>
+                <button type="button" onClick={cancelCrop}       className="crop-btn secondary">Cancel</button>
+                <button type="button" onClick={handleCropComplete} className="crop-btn primary">Crop & Save</button>
               </div>
-           </div>
-        </div>
-      )}
-
-      <div className="upload-header">
-        <h1 className="upload-title">Upload Video</h1>
-        <p className="upload-subtitle">Share your content with the world</p>
-      </div>
-
-      {error && (
-          <div className="upload-error-banner" style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-              <AlertCircle size={20} />
-              {error}
+            </div>
           </div>
-      )}
+        )}
 
-      <form onSubmit={handleSubmit} className="upload-form">
-        
-        {/* Title Input */}
-        <div className="upload-input-group">
-          <label className="upload-label" htmlFor="title">Video Title</label>
-          <input 
-            type="text" 
-            id="title" 
-            name="title" 
-            className="upload-input" 
-            placeholder="Give your video a catchy title..." 
-            value={formData.title}
-            onChange={handleInputChange}
-            maxLength={100}
-            required
-          />
+        {/* ── PAGE HEADER ── */}
+        <div className="upload-header">
+          <div className="upload-header-icon"><UploadIcon size={26} /></div>
+          <h1 className="upload-title">Upload Video</h1>
+          <p className="upload-subtitle">Share your content with the world</p>
         </div>
 
-        {/* Description Input */}
-        <div className="upload-input-group">
-          <label className="upload-label" htmlFor="description">Description</label>
-          <textarea 
-            id="description" 
-            name="description" 
-            className="upload-textarea" 
-            placeholder="Tell viewers about your video..." 
-            value={formData.description}
-            onChange={handleInputChange}
-            required
-          />
+        {/* ── STEP INDICATOR ── */}
+        <div className="upload-steps-nav">
+          {STEPS.map((step, idx) => {
+            const isDone   = currentStep > step.id;
+            const isActive = currentStep === step.id;
+            return (
+              <React.Fragment key={step.id}>
+                <div
+                  className={`upload-step-item ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}
+                  onClick={() => isDone && goToStep(step.id)}
+                  style={{ cursor: isDone ? 'pointer' : 'default' }}
+                >
+                  <div className="upload-step-circle">
+                    {isDone ? <Check size={14} strokeWidth={2.5} /> : step.id}
+                  </div>
+                  <div className="upload-step-label">{step.label}</div>
+                </div>
+                {idx < STEPS.length - 1 && (
+                  <div className={`upload-step-line ${isDone ? 'done' : ''}`} />
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
 
-        {/* Video Type and Category */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        {/* ── ERROR ── */}
+        {error && (
+          <div className="upload-error-banner">
+            <AlertCircle size={17} />
+            {error}
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════
+            STEP 1 — DETAILS
+        ══════════════════════════════════════════ */}
+        {currentStep === 1 && (
+          <div className="upload-step-panel">
+            <div className="upload-step-heading">
+              <div className="upload-step-title">Video Details</div>
+              <div className="upload-step-sub">Give your video a title and description</div>
+            </div>
+
             <div className="upload-input-group">
+              <label className="upload-label" htmlFor="title">Video Title</label>
+              <input
+                type="text" id="title" name="title"
+                className="upload-input"
+                placeholder="Give your video a catchy title…"
+                value={formData.title}
+                onChange={handleInputChange}
+                maxLength={100} required
+              />
+              <div className="upload-field-footer">
+                <span className="upload-char-count">{formData.title.length} / 100</span>
+              </div>
+            </div>
+
+            <div className="upload-input-group">
+              <label className="upload-label" htmlFor="description">Description</label>
+              <textarea
+                id="description" name="description"
+                className="upload-textarea"
+                placeholder="Tell viewers about your video…"
+                value={formData.description}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="upload-btn-row end">
+              <button type="button" className="upload-btn-next" onClick={handleNext}>
+                Next — Media <ArrowRight size={14} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════
+            STEP 2 — MEDIA
+        ══════════════════════════════════════════ */}
+        {currentStep === 2 && (
+          <div className="upload-step-panel">
+            <div className="upload-step-heading">
+              <div className="upload-step-title">Upload Media</div>
+              <div className="upload-step-sub">Add your video file and thumbnail image</div>
+            </div>
+
+            {/* Video dropzone / preview */}
+            <div className="upload-input-group">
+              <label className="upload-label">Video File</label>
+              {videoPreviewUrl ? (
+                <div className="media-preview-container">
+                  <video src={videoPreviewUrl} className="media-preview-element" controls autoPlay muted loop />
+                  <button type="button" className="media-preview-remove" onClick={removeVideo}><X size={16} /></button>
+                </div>
+              ) : (
+                <div className="file-upload-wrapper">
+                  <input type="file" accept="video/mp4,video/x-m4v,video/*" className="file-upload-input" onChange={handleVideoChange} />
+                  <div className="file-upload-content">
+                    <div className="file-upload-icon"><Video size={22} /></div>
+                    <p className="file-upload-text">Click or drag your video here</p>
+                    <p className="file-upload-hint">MP4, WebM or M4V · Max 2GB</p>
+                    <span className="file-upload-or">— or —</span>
+                    <span className="file-upload-browse">Browse File</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnail + preview side by side */}
+            <div className="upload-media-row">
+              <div className="upload-input-group">
+                <label className="upload-label">Thumbnail Image</label>
+                {thumbnailPreviewUrl ? (
+                  <div className="media-preview-container thumb-preview">
+                    <img src={thumbnailPreviewUrl} alt="Thumbnail" className="media-preview-element" />
+                    <button type="button" className="media-preview-remove" onClick={removeThumbnail}><X size={16} /></button>
+                  </div>
+                ) : (
+                  <div className="file-upload-wrapper thumb-drop">
+                    <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp" className="file-upload-input" onChange={onSelectFile} />
+                    <div className="file-upload-content">
+                      <div className="file-upload-icon"><ImageIcon size={20} /></div>
+                      <p className="file-upload-text">Upload Thumbnail</p>
+                      <p className="file-upload-hint">JPG, PNG · Max 5MB</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* <div className="upload-input-group">
+                <div className="thumb-preview-placeholder">
+                  {thumbnailPreviewUrl
+                    ? <img src={thumbnailPreviewUrl} alt="Preview" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'10px' }} />
+                    : <span className="thumb-preview-empty">Thumbnail preview</span>
+                  }
+                </div>
+              </div> */}
+            </div>
+
+            <div className="upload-tips-bar">
+              <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>Use a <strong>1920×1080 thumbnail</strong> for best quality. It will be cropped to 16:9.</span>
+            </div>
+
+            <div className="upload-btn-row between">
+              <button type="button" className="upload-btn-back" onClick={handleBack}>
+                <ArrowLeft size={14} strokeWidth={2} /> Back
+              </button>
+              <button type="button" className="upload-btn-next" onClick={handleNext}>
+                Next — Settings <ArrowRight size={14} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════
+            STEP 3 — SETTINGS
+        ══════════════════════════════════════════ */}
+        {currentStep === 3 && (
+          <div className="upload-step-panel">
+            <div className="upload-step-heading">
+              <div className="upload-step-title">Video Settings</div>
+              <div className="upload-step-sub">Configure your video type, category and visibility</div>
+            </div>
+
+            <div className="upload-grid-2">
+              <div className="upload-input-group">
                 <label className="upload-label" htmlFor="isShort">Video Type</label>
-                <select 
-                    id="isShort" 
-                    name="isShort" 
-                    className="upload-select"
-                    value={formData.isShort}
-                    onChange={handleInputChange}
-                >
-                    <option value="false">Regular Video</option>
-                    <option value="true">Shorts</option>
+                <select id="isShort" name="isShort" className="upload-select" value={formData.isShort} onChange={handleInputChange}>
+                  <option value="false">Regular Video</option>
+                  <option value="true">Short</option>
                 </select>
+              </div>
+              <div className="upload-input-group">
+                <label className="upload-label" htmlFor="category">Category</label>
+                <select id="category" name="category" className="upload-select" value={formData.category} onChange={handleInputChange}>
+                  <option value="Other">Other</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Music">Music</option>
+                  <option value="Education">Education</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Vlog">Vlog</option>
+                  <option value="Tech">Tech</option>
+                  <option value="Travel">Travel</option>
+                </select>
+              </div>
             </div>
+
+            <div className="upload-divider" />
 
             <div className="upload-input-group">
-                <label className="upload-label" htmlFor="category">Category</label>
-                <select 
-                    id="category" 
-                    name="category" 
-                    className="upload-select"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                >
-                    <option value="Other">Other</option>
-                    <option value="Gaming">Gaming</option>
-                    <option value="Music">Music</option>
-                    <option value="Education">Education</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Vlog">Vlog</option>
-                    <option value="Tech">Tech</option>
-                </select>
+              <label className="upload-label" htmlFor="visibility">Visibility</label>
+              <select id="visibility" name="visibility" className="upload-select" value={formData.visibility} onChange={handleInputChange}>
+                <option value="public">Public — Anyone can watch</option>
+                <option value="unlisted">Unlisted — Only with the link</option>
+                <option value="private">Private — Only you</option>
+              </select>
             </div>
-        </div>
 
-        {/* Dynamic Video Element Dropzone / Preview */}
-        <div className="upload-input-group">
-          <label className="upload-label">Video File</label>
-          
-          {videoPreviewUrl ? (
-              <div className="media-preview-container">
-                  <video 
-                      src={videoPreviewUrl} 
-                      className="media-preview-element" 
-                      controls
-                      autoPlay
-                      muted
-                      loop
-                  />
-                  <button type="button" className="media-preview-remove fade-in" onClick={removeVideo}>
-                      <X size={24} color="var(--text-primary)" />
-                  </button>
-              </div>
-          ) : (
-             <div className="file-upload-wrapper">
-                 <input 
-                    type="file" 
-                    accept="video/mp4,video/x-m4v,video/*" 
-                    className="file-upload-input"
-                    onChange={handleVideoChange}
-                 />
-                 <div className="file-upload-content">
-                     <Video className="file-upload-icon" size={40} />
-                     <p className="file-upload-text">Click or drag video to upload</p>
-                     <p className="file-upload-hint">MP4, WebM or M4V (Max 2GB)</p>
-                 </div>
-              </div>
-          )}
-        </div>
+            <div className="upload-btn-row between">
+              <button type="button" className="upload-btn-back" onClick={handleBack}>
+                <ArrowLeft size={14} strokeWidth={2} /> Back
+              </button>
+              <button type="button" className="upload-btn-next" onClick={handleNext}>
+                Next — Review <ArrowRight size={14} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+        )}
 
-        {/* Dynamic Thumbnail Image Dropzone / Preview */}
-        <div className="upload-input-group">
-          <label className="upload-label">Thumbnail Image</label>
-          
-          {thumbnailPreviewUrl ? (
-              <div className="media-preview-container">
-                  <img src={thumbnailPreviewUrl} alt="Thumbnail preview" className="media-preview-element" />
-                  <button type="button" className="media-preview-remove fade-in" onClick={removeThumbnail}>
-                      <X size={24} color="var(--text-primary)" />
-                  </button>
-              </div>
-          ) : (
-              <div className="file-upload-wrapper" style={{ padding: '1.5rem' }}>
-                 <input 
-                    type="file" 
-                    accept="image/jpeg,image/png,image/jpg,image/webp" 
-                    className="file-upload-input"
-                    onChange={onSelectFile}
-                 />
-                 <div className="file-upload-content">
-                     <ImageIcon className="file-upload-icon" size={32} />
-                     <p className="file-upload-text">Upload Custom Thumbnail</p>
-                     <p className="file-upload-hint">JPG, PNG or WEBP (Max 5MB)</p>
-                 </div>
-              </div>
-          )}
-        </div>
+        {/* ══════════════════════════════════════════
+            STEP 4 — REVIEW
+        ══════════════════════════════════════════ */}
+        {currentStep === 4 && (
+          <div className="upload-step-panel">
+            <div className="upload-step-heading">
+              <div className="upload-step-title">Review & Publish</div>
+              <div className="upload-step-sub">Check everything before publishing your video</div>
+            </div>
 
-        {/* Submit */}
-        <div className="upload-submit-container">
-          <button type="submit" className="upload-submit-btn" disabled={loading}>
-            {loading ? (
-               <>
-                 <Loader2 size={20} className="spinner" style={{ animation: 'spin 1s linear infinite' }} />
-                 Publishing...
-               </>
-            ) : (
-               <>
-                 <UploadIcon size={20} />
-                 Publish Video
-               </>
-            )}
-          </button>
-        </div>
+            <div className="upload-review-grid">
+              <div className="upload-review-card">
+                <div className="upload-review-key">Title</div>
+                <div className="upload-review-val">{formData.title || '—'}</div>
+              </div>
+              <div className="upload-review-card">
+                <div className="upload-review-key">Category</div>
+                <div className="upload-review-val">{formData.category}</div>
+              </div>
+              <div className="upload-review-card">
+                <div className="upload-review-key">Video Type</div>
+                <div className="upload-review-val">{typeLabel}</div>
+              </div>
+              <div className="upload-review-card">
+                <div className="upload-review-key">Visibility</div>
+                <div className="upload-review-val">{visLabel}</div>
+              </div>
+            </div>
 
-      </form>
-    </div>
+            <div className="upload-review-card full">
+              <div className="upload-review-key">Description</div>
+              <div className="upload-review-desc">{formData.description || '—'}</div>
+            </div>
+
+            <div className="upload-review-media">
+              <div className="upload-review-card media-card">
+                <div className="upload-review-key">Video File</div>
+                <div className="upload-review-val media-name">
+                  {videoFile ? (
+                    <><Video size={13} /> {videoFile.name}</>
+                  ) : <span style={{color:'rgba(255,255,255,0.3)'}}>No file</span>}
+                </div>
+              </div>
+              <div className="upload-review-card media-card">
+                <div className="upload-review-key">Thumbnail</div>
+                {thumbnailPreviewUrl
+                  ? <img src={thumbnailPreviewUrl} alt="thumb" className="upload-review-thumb" />
+                  : <span className="upload-review-val" style={{color:'rgba(255,255,255,0.3)'}}>No thumbnail</span>
+                }
+              </div>
+            </div>
+
+            <div className="upload-tips-bar">
+              <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>Videos are processed after publishing and may take a few minutes to appear publicly.</span>
+            </div>
+
+            <div className="upload-btn-row between">
+              <button type="button" className="upload-btn-back" onClick={handleBack}>
+                <ArrowLeft size={14} strokeWidth={2} /> Back
+              </button>
+              <button type="button" className="upload-btn-publish" onClick={handleSubmit} disabled={loading}>
+                {loading
+                  ? <><Loader2 size={16} className="upload-spinner" /> Publishing…</>
+                  : <><UploadIcon size={16} /> Publish Video</>
+                }
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import VideoCard from '../components/video/VideoCard';
 import Skeleton from '../components/ui/Skeleton';
+import { getTrending } from '../services/search.service';
 import { Search as SearchIcon, AlertCircle, Compass } from 'lucide-react';
 import './Search.css';
 
@@ -17,16 +18,22 @@ const Search = () => {
 
   useEffect(() => {
     const fetchSearchResults = async () => {
+      setLoading(true);
+      setError(null);
+      setSuggestedVideos([]);
+
       if (!query.trim()) {
+        try {
+          const { data } = await getTrending(10);
+          setSuggestedVideos(data?.docs || data || []);
+        } catch (err) {
+          console.error("Failed to load trending:", err);
+        }
         setVideos([]);
         setLoading(false);
         return;
       }
 
-      setLoading(true);
-      setError(null);
-      setSuggestedVideos([]); // clear previous suggestions
-      
       try {
         const response = await axios.get(`/api/v1/videos/get-all-videos?query=${encodeURIComponent(query)}`);
         const fetchedVideos = response.data?.data?.docs || response.data?.docs || [];
@@ -90,7 +97,7 @@ const Search = () => {
            <div className="suggestions-header" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Compass size={28} color="var(--accent-color)" />
               <h2 style={{ margin: 0, fontFamily: 'Orbitron, sans-serif', fontSize: '1.5rem', color: 'var(--text-primary)' }}>
-                  Suggested Videos for you
+                  {query.trim() ? "Suggested Videos for you" : "Trending Videos"}
               </h2>
            </div>
            

@@ -1,60 +1,77 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  background-color: #0a0a0a !important;
-  overscroll-behavior: none !important;
-  overscroll-behavior-y: none !important;
-  height: 100% !important;
-}
-
-body {
-  background-color: #0a0a0a !important;
-  overscroll-behavior: none !important;
-  overscroll-behavior-y: none !important;
-  height: 100% !important;
-  min-height: 100vh !important;
-  position: relative !important;
-}
-
-#root {
-  background-color: #0a0a0a !important;
-  min-height: 100vh !important;
-  height: 100% !important;
-}
-
-body::before,
-body::after {
-  content: '' !important;
-  position: fixed !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 100vh !important;
-  background-color: #0a0a0a !important;
-  z-index: -1 !important;
-  pointer-events: none !important;
-}
-
-body::before {
-  top: -100vh !important;
-}
-
-body::after {
-  bottom: -100vh !important;
-}
-
 :root {
-  /* Global Theme Variables */
-  --bg-color: #0a0a0a;
-  --surface-color: #111111;
-  --text-primary: #ffffff;
-  --text-muted: #a0a0a0;
-  --accent-color: #ffffff;
-  --accent-gradient: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-  --border-color: #2a2a2a;
+  /* ── BACKGROUNDS (Clean minimal dark theme) ── */
+  --bg-base:        #0f0f0f;   /* main page bg */
+  --bg-surface:     #121212;   /* sidebar, header */
+  --bg-card:        #181818;   /* video cards, panels */
+  --bg-elevated:    #222222;   /* hover states, pills, dropdowns */
+  --bg-overlay:     #252525;   /* modals, tooltips */
+
+  /* ── RED ACCENT (YouTube-like minimal red) ── */
+  --primary:        #ff3d3d;
+  --primary-light:  #ff6b6b;
+  --primary-dark:   #cc0000;
+
+  /* ── GLASS (Neutral, no heavy glows) ── */
+  --glass:          rgba(255, 255, 255, 0.03);
+  --glass-indigo:   rgba(255, 61, 61, 0.03);
+  --glass-border:   rgba(255, 255, 255, 0.07);
+  --glass-border-active: rgba(255, 255, 255, 0.15);
+  --glass-hover:    rgba(255, 255, 255, 0.05);
+
+  /* ── GLOW ORBS (Removed glowing) ── */
+  --glow-primary:   transparent;
+  --glow-soft:      transparent;
+
+  /* ── TYPOGRAPHY ── */
+  --text-primary:   #ffffff;
+  --text-secondary: #aaaaaa;
+  --text-muted:     rgba(255, 255, 255, 0.35);
+  --text-hint:      rgba(255, 255, 255, 0.20);
+
+  /* ── INTERACTIVE STATES ── */
+  --nav-active-bg:      #222222;
+  --nav-active-border:  rgba(255, 255, 255, 0.15);
+  --nav-active-text:    #ffffff;
+  --nav-hover-bg:       rgba(255, 255, 255, 0.08);
+
+  /* ── PILLS / TAGS ── */
+  --pill-bg:        #1f1f1f;
+  --pill-border:    transparent;
+  --pill-active-bg: #ffffff;
+  --pill-active-border: transparent;
+  --pill-active-text:   #0f0f0f;
+
+  /* ── CARDS ── */
+  --card-bg:        #181818;
+  --card-border:    transparent;
+  --card-hover-bg:  #222222;
+  --card-hover-border: transparent;
+  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  /* ── BUTTONS ── */
+  --btn-primary-bg:     #ff3d3d;
+  --btn-primary-shadow: none;
+  --btn-ghost-bg:       rgba(255, 255, 255, 0.08);
+  --btn-ghost-border:   transparent;
+  --btn-ghost-text:     #ffffff;
+
+  /* ── INPUTS ── */
+  --input-bg:       #121212;
+  --input-border:   #2a2a2a;
+  --input-focus-border: #444444;
+  --input-focus-shadow: none;
+  --input-focus-bg: #121212;
+
+  /* ── DIVIDERS ── */
+  --divider:        #2a2a2a;
+
+  /* Legacy Mappings to ensure compatibility */
+  --bg-color: var(--bg-base);
+  --surface-color: var(--bg-surface);
+  --surface-color-2: var(--bg-card);
+  --accent-color: var(--primary);
+  --accent-hover: var(--primary-light);
+  --border-color: var(--divider);
 
   font-family: 'Plus Jakarta Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -63,7 +80,7 @@ body::after {
 
   color-scheme: dark;
   color: var(--text-primary);
-  background-color: var(--bg-color);
+  background-color: var(--bg-base);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -71,47 +88,29 @@ body::after {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-a {
-  font-weight: 600;
-  color: #FFFFFF;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #E0E0E0;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html,
 body,
-#root,
-#app,
-#__next {
-  background-color: var(--bg-color) !important;
-  background: var(--bg-color) !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
-  height: 100%;
-  overscroll-behavior: none !important;
-  overscroll-behavior-y: none !important;
-  color: var(--text-primary) !important;
+#root {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   margin: 0;
   padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100%;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
 }
 
 @media screen {
   html {
-    background-color: #0a0a0a !important;
+    background-color: var(--bg-color);
   }
 }
 
@@ -149,31 +148,25 @@ button {
 }
 
 html {
-  background-color: #0a0a0a !important;
-  min-height: 100% !important;
+  background-color: var(--bg-color);
+  min-height: 100%;
 }
 
 body {
-  background-color: #0a0a0a !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 #root {
-  background-color: #0a0a0a !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-div,
-section,
-main,
-aside,
-nav,
-header,
-article {
-  background-color: inherit;
-}
+/* Background colors are now managed by component-level CSS.
+   Do NOT add a blanket background-color: inherit here — it breaks
+   component overrides and causes "black on black" visibility issues. */
 
 button:hover {
   border-color: #ffffff;
@@ -185,13 +178,13 @@ button:focus-visible {
 }
 
 html, body, #root {
-  background-color: #0a0a0a !important;
-  background: #0a0a0a !important;
-  min-height: 100vh !important;
+  background-color: var(--bg-color);
+  background: var(--bg-color);
+  min-height: 100vh;
 }
 
 html::after, body::after {
-  content: '' !important;
-  display: block !important;
-  background-color: #0a0a0a !important;
+  content: '';
+  display: block;
+  background-color: var(--bg-color);
 }

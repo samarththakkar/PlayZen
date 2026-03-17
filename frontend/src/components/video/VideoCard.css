@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Video Card Styles (Mobile-First)
+   Video Card — PlayZen Glass Morphism Theme
    ========================================================================== */
 
 .video-card {
@@ -7,272 +7,281 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    background: transparent;
-    transition: transform 0.2s ease;
+    background: var(--card-bg);
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.28s ease;
+    cursor: default;
 }
 
-/* 
-  ---------------------------------------------------------
-  1. Thumbnail Area (16:9 Aspect Ratio)
-  --------------------------------------------------------- 
-*/
+.video-card:hover {
+    background: var(--card-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   1. THUMBNAIL
+   ========================================================================== */
 .video-thumbnail-container {
     position: relative;
     width: 100%;
-    padding-top: 56.25%;
-    /* 16:9 Aspect Ratio */
-    background: var(--surface-color);
-    border-radius: 12px;
+    aspect-ratio: 16 / 9;
+    background: rgba(255, 255, 255, 0.04);
     overflow: hidden;
     cursor: pointer;
-    z-index: 1;
+    flex-shrink: 0;
 }
 
-/* Base states for images/video */
 .video-thumbnail-img,
 .video-hover-player {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
+    width: 100%; height: 100%;
     object-fit: cover;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.35s ease, transform 0.4s ease;
 }
 
 .video-thumbnail-img {
-    z-index: 2;
-    opacity: 1;
+    z-index: 2; opacity: 1;
 }
-
 .video-hover-player {
-    z-index: 1;
-    opacity: 0;
+    z-index: 1; opacity: 0;
 }
 
-/* When the player is active (after 2s hover), fade out the static image */
-/* When the player is active (after 2s hover), fade out the static image */
-.video-thumbnail-container.playing .video-thumbnail-img {
-    opacity: 0;
+/* Scale thumbnail on card hover */
+.video-card:hover .video-thumbnail-img {
+    transform: scale(1.04);
 }
 
-/* Play Overlay styling */
+/* Gradient overlay on hover */
+.video-thumbnail-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(8, 8, 16, 0.55) 0%,
+        transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 3;
+    pointer-events: none;
+}
+.video-card:hover .video-thumbnail-container::after { opacity: 1; }
+
+/* Playing state — swap to video */
+.video-thumbnail-container.playing .video-thumbnail-img { opacity: 0; }
+.video-thumbnail-container.playing .video-hover-player  { opacity: 1; }
+.video-thumbnail-container.playing .video-duration      { display: none; }
+
+/* ── PLAY OVERLAY ── */
 .play-overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.6);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
     backdrop-filter: blur(4px);
-    border-radius: 50%;
-    width: 64px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    z-index: 4;
+    display: flex; align-items: center; justify-content: center;
+    color: #ffffff;
+    z-index: 5;
     opacity: 0;
-    transition: all 0.3s ease;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
-    /* Don't intercept clicks */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
-
-/* Base Card Hover Rules */
-.card {
-    background-color: #111111;
-    border: 1px solid #2a2a2a;
-    border-radius: 16px;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.card:hover {
-    transform: scale(1.03);
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.15);
-    /* Subtle glow */
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-.card:hover .play-overlay {
+.video-card:hover .play-overlay {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translate(-50%, -50%) scale(1);
 }
 
-.video-thumbnail-container.playing .video-hover-player {
-    opacity: 1;
-}
-
+/* ── DURATION BADGE ── */
 .video-duration {
     position: absolute;
-    bottom: 0.5rem;
-    right: 0.5rem;
-    background: rgba(256, 256, 256, 0.4);
-    color: var(--text-primary);
-    padding: 0.1rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    bottom: 8px; right: 8px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 11px;
     font-weight: 600;
-    font-family: 'Rajdhani', sans-serif;
-    z-index: 3;
+    font-family: 'Inter', 'Rajdhani', sans-serif;
+    z-index: 4;
+    font-variant-numeric: tabular-nums;
 }
 
-/* Hide duration badge when video is actively playing on hover */
-.video-thumbnail-container.playing .video-duration {
-    display: none;
-}
-
-/* 
-  ---------------------------------------------------------
-  2. Info Area (Avatar + Text + Kebab Menu)
-  --------------------------------------------------------- 
-*/
+/* ==========================================================================
+   2. INFO AREA
+   ========================================================================== */
 .video-info-container {
     display: flex;
-    gap: 0.75rem;
-    padding-top: 0.75rem;
+    gap: 10px;
+    padding: 12px 14px 14px;
     position: relative;
-    color: #ffffff;
-    /* For absolutely positioned kebab menu */
+    z-index: 1;
+    background-color: #212121 !important;
 }
 
 .video-avatar {
-    width: 36px;
-    height: 36px;
+    width: 34px; height: 34px;
     border-radius: 50%;
     object-fit: cover;
     cursor: pointer;
     flex-shrink: 0;
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-top: 1px;
+}
+.video-avatar:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
 .video-text-content {
     flex: 1;
     min-width: 0;
-    /* Prevents text overflow breaking flexbox */
-    padding-right: 24px;
-    /* Space for the 3 dots */
+    padding-right: 22px;
 }
 
 .video-title {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-    font-family: 'Space Grotesk', sans-serif;
-    color: var(--text-primary);
-    line-height: 1.3;
+    margin: 0 0 4px 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: 'Inter', 'Space Grotesk', sans-serif;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
     cursor: pointer;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-
+    transition: color 0.18s;
 }
+.video-title:hover { color: #ffffff; }
 
 .video-channel {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.48);
+    font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+    margin: 0 0 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: color 0.18s;
+    width: fit-content;
+}
+.video-channel:hover { color: rgba(255, 255, 255, 0.75); }
+
+.video-meta {
+    font-size: 11.5px;
+    font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+    color: rgba(255, 255, 255, 0.3);
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    cursor: pointer;
-    transition: color 0.2s;
+    gap: 4px;
 }
 
-.video-channel:hover {
-    color: var(--text-secondary);
-}
-
-.video-meta {
-    font-size: 0.85rem;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    color: var(--text-muted);
-    margin: 0.1rem 0 0 0;
-}
-
-/* 
-  ---------------------------------------------------------
-  3. Kebab Menu (3 Vertical Dots)
-  --------------------------------------------------------- 
-*/
+/* ==========================================================================
+   3. KEBAB MENU
+   ========================================================================== */
 .kebab-menu-container {
     position: absolute;
-    top: 0.75rem;
-    right: 0;
+    top: 12px; right: 10px;
+    z-index: 10;
 }
 
 .kebab-btn {
+    width: 30px; height: 30px;
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: rgba(255, 255, 255, 0.3);
     cursor: pointer;
-    padding: 0.2rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s ease;
+    /* Hidden until hover */
+    opacity: 0;
 }
-
-.kebab-btn:focus,
+.video-card:hover .kebab-btn { opacity: 1; }
 .kebab-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
 }
+.kebab-btn:focus { outline: none; opacity: 1; }
 
-/* The absolute dropdown box */
+/* ── DROPDOWN MENU ── */
 .video-dropdown-menu {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 6px);
     right: 0;
-    width: 220px;
-    background-color: #111111;
-    border: 1px solid #2a2a2a;
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    width: 230px;
+    /* background: rgba(14, 14, 22, 0.97); */
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    border-radius: 14px;
+    box-shadow:
+        0 16px 48px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(99, 102, 241, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
     overflow: hidden;
-    z-index: 50;
-    animation: scaleIn 0.15s ease-out forwards;
+    z-index: 9999;
     transform-origin: top right;
+    animation: dropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
+/* Indigo top accent */
+.video-dropdown-menu::before {
+    content: '';
+    display: block; height: 2px;
+    background: linear-gradient(90deg, #4F46E5, #818CF8, #4F46E5);
+}
 
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+@keyframes dropIn {
+    from { opacity: 0; transform: scale(0.94) translateY(-6px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0); }
 }
 
 .video-dropdown-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 1rem;
-    color: var(--text-primary);
+    gap: 10px;
+    padding: 10px 14px;
+    color: rgba(255, 255, 255, 0.68);
     background: transparent;
     border: none;
     width: 100%;
     text-align: left;
     cursor: pointer;
-    transition: background 0.2s;
-    font-size: 0.85rem;
+    transition: all 0.15s ease;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
 }
-
 .video-dropdown-item:hover {
-    background-color: #222222;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
 }
+.video-dropdown-item svg {
+    width: 15px; height: 15px;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.7; flex-shrink: 0;
+    opacity: 0.7;
+}
+.video-dropdown-item:hover svg { opacity: 1; }
 
 .video-dropdown-divider {
     height: 1px;
-    background: var(--border-color);
-    margin: 0.25rem 0;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 4px 0;
 }

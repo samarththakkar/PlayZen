@@ -4,7 +4,6 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
-import mongoose from "mongoose";
 import { Video } from "../models/video.model.js";
 import { sendOTP } from "../utils/brevoOtp.js";
 
@@ -111,15 +110,12 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Password is required for regular registration");
     }
 
-    const existedUserByUsername = await User.findOne({ username: normalizedUsername });
-    const existedUserByEmail = await User.findOne({ email: emailTrimmed });
-
     if (existedUserByUsername && existedUserByUsername.email !== emailTrimmed) {
-        throw new ApiError(409, "User with this username already exists");
+        throw new ApiError(409, "This username is already taken. Please try another one.");
     }
 
     if (!provider && (!existedUserByEmail || !existedUserByEmail.isEmailVerified)) {
-        throw new ApiError(400, "Please verify your email first before registering");
+        throw new ApiError(400, "Your email hasn't been verified yet. Please verify your email to continue.");
     }
 
     // Handle avatar
@@ -148,12 +144,33 @@ const registerUser = asyncHandler(async (req, res) => {
         avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullNameTrimmed)}&background=${bgColor}&color=fff&length=1`;
     }
 
-    // Handle cover image
-    let coverImageUrl = "";
-    if (req.files?.coverImage?.[0]) {
-        const coverImage = await uploadOnCloudinary(req.files.coverImage[0].path);
-        coverImageUrl = coverImage?.url || "";
+   // Handle cover image
+let coverImageUrl = "";
+if (req.files?.coverImage?.[0]) {
+    const coverImage = await uploadOnCloudinary(req.files.coverImage[0].path);
+    coverImageUrl = coverImage?.url || "";
+}
+
+// Cover image fallback — generate gradient if not uploaded
+if (!coverImageUrl) {
+    const gradients = [
+        "linear-gradient(135deg, #7C3AED, #DB2777)",
+        "linear-gradient(135deg, #2563EB, #7C3AED)",
+        "linear-gradient(135deg, #059669, #2563EB)",
+        "linear-gradient(135deg, #DC2626, #D97706)",
+        "linear-gradient(135deg, #0891B2, #059669)",
+        "linear-gradient(135deg, #DB2777, #DC2626)",
+        "linear-gradient(135deg, #D97706, #DB2777)",
+        "linear-gradient(135deg, #1e3a5f, #0891B2)",
+    ];
+    const hashStr = normalizedUsername || emailTrimmed || "user";
+    let hash = 0;
+    for (let i = 0; i < hashStr.length; i++) {
+        hash = hashStr.charCodeAt(i) + ((hash << 5) - hash);
     }
+    const gradientIndex = Math.abs(hash) % gradients.length;
+    coverImageUrl = gradients[gradientIndex];
+}
 
     let user;
 
@@ -218,11 +235,11 @@ const loginUser = asyncHandler(async (req, res) => {
         $or: [{ username }, { email }]
     })
     if (!user) {
-        throw new ApiError(404, "user does not exist");
+        throw new ApiError(404, "We couldn't find an account with that email or username. Please check your spelling.");
     }
     const isPasswordValid = await user.isPasswordCorrect(password)
     if (!isPasswordValid) {
-        throw new ApiError(404, "Invalid user credentials");
+        throw new ApiError(401, "The password you entered is incorrect. Please try again.");
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
@@ -396,54 +413,14 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 })
 
 const getWatchHistory = asyncHandler(async (req, res) => {
-    const user = await User.aggregate([
-        {
-            $match: {
-                _id: new mongoose.Types.ObjectId(req.user._id)
-            }
-        },
-        {
-            $lookup: {
-                from: "videos",
-                localField: "watchHistory",
-                foreignField: "_id",
-                as: "watchHistory",
-                pipeline: [
-                    {
-                        $lookup: {
-                            from: "users",
-                            localField: "owner",
-                            foreignField: "_id",
-                            as: "owner",
-                            pipeline: [
-                                {
-                                    $project: {
-                                        fullname: 1,
-                                        username: 1,
-                                        avatar: 1
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        $addFields: {
-                            owner: {
-                                $first: "$owner"
-                            }
-                        }
-                    }
-                ]
-            }
-        }
-    ])
+    const [user] = await User.getWatchHistory(req.user._id)
 
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
-                user[0].watchHistory,
+                user?.watchHistory || [],
                 "Watch history fetched successfully"
             )
         )
@@ -456,58 +433,10 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         throw new ApiError(400, "username is missing")
     }
 
-    const channel = await User.aggregate([
-        {
-            $match: {
-                username: username?.toLowerCase()
-            }
-        },
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "channel",
-                as: "subscribers"
-            }
-        },
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "subscriber",
-                as: "subscribedTo"
-            }
-        },
-        {
-            $addFields: {
-                subscribersCount: {
-                    $size: "$subscribers"
-                },
-                channelsSubscribedToCount: {
-                    $size: "$subscribedTo"
-                },
-                isSubscribed: {
-                    $cond: {
-                        if: { $in: [req.user?._id, "$subscribers.subscriber"] },
-                        then: true,
-                        else: false
-                    }
-                }
-            }
-        },
-        {
-            $project: {
-                fullname: 1,
-                username: 1,
-                subscribersCount: 1,
-                channelsSubscribedToCount: 1,
-                isSubscribed: 1,
-                avatar: 1,
-                coverImage: 1,
-                email: 1
-            }
-        }
-    ])
+    const channel = await User.getChannelProfile({
+        username,
+        subscriberId: req.user?._id
+    })
 
     if (!channel?.length) {
         throw new ApiError(404, "channel does not exists")

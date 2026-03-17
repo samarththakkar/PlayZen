@@ -7,8 +7,8 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background-color: #0a0a0a !important;
-    background: #0a0a0a !important;
+    background-color: var(--bg-base) !important;
+    background: var(--bg-base) !important;
     color: var(--text-primary);
 }
 
@@ -33,8 +33,8 @@
 /* Main content wrapper where React Router <Outlet> renders */
 .app-main-content {
     flex: 1;
-    background-color: #0a0a0a !important;
-    background: #0a0a0a !important;
+    background-color: var(--bg-card) !important;
+    background: var(--bg-card) !important;
     width: 100%;
     padding-top: var(--header-height);
     transition: margin-left 0.3s ease;
@@ -62,4 +62,29 @@
 /* Desktop/Tablet CSS Grid optimizations (optional wrapper) */
 .page-wrapper {
     min-height: 100%;
+}
+
+/* ── AMBIENT ORBS ── */
+.bg-orb-1,
+.bg-orb-2 {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.bg-orb-1 {
+  top: -200px;
+  right: -100px;
+  background: radial-gradient(circle, var(--glow-primary) 0%, transparent 70%);
+}
+
+.bg-orb-2 {
+  bottom: -200px;
+  left: -200px;
+  background: radial-gradient(circle, var(--glow-soft) 0%, transparent 70%);
 }

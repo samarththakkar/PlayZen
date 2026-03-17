@@ -1,75 +1,166 @@
 /* ==========================================================================
-   Mobile Bottom Navigation
+   Mobile Bottom Navigation — PlayZen Glass Morphism Theme
    ========================================================================== */
 
-/* Initially display block, but hidden on desktop via media queries */
 .global-bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
+    bottom: 0; left: 0;
     width: 100%;
-    height: var(--mobile-nav-height, 65px);
-    background-color: #111111;
-    backdrop-filter: blur(10px);
-    color: #FFFFFF;
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid #2a2a2a;
+    height: var(--mobile-nav-height, 64px);
+
+    /* Glass morphism */
+    background: rgba(8, 8, 16, 0.85);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+
+    /* Top border glow instead of bottom */
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: none;
+
     display: flex;
     justify-content: space-around;
     align-items: center;
-    z-index: 1000;
+    z-index: 9990;
+
+    /* iOS safe area */
     padding-bottom: env(safe-area-inset-bottom, 0);
-    /* Support for iOS home indicator */
+
+    /* Subtle top glow line */
+    box-shadow: 0 -1px 0 rgba(99, 102, 241, 0.12),
+                0 -20px 40px rgba(0, 0, 0, 0.3);
 }
 
+/* Ambient top glow */
+.global-bottom-nav::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 15%; right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.35), transparent);
+    pointer-events: none;
+}
+
+/* ── NAV ITEMS ── */
 .bottom-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.2rem;
-    color: var(--text-muted);
+    gap: 3px;
+    color: rgba(255, 255, 255, 0.35);
     text-decoration: none;
-    width: 20%;
-    /* 5 items total = 20% each */
+    flex: 1;
     height: 100%;
-    transition: color 0.2s ease;
-    position: relative;
     border: none;
     background: transparent;
     cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0;
 }
 
+/* Tap ripple area */
+.bottom-nav-item::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 12px;
+    background: transparent;
+    transition: background 0.2s ease;
+}
+.bottom-nav-item:active::after {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+/* ── ACTIVE STATE ── */
 .bottom-nav-item.active {
-    color: var(--text-primary);
+    color: #818CF8;
 }
 
+/* Active top indicator dot */
+.bottom-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 20px; height: 2.5px;
+    background: linear-gradient(90deg, #6366F1, #818CF8);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+}
+
+/* ── ICON ── */
 .bottom-nav-icon {
-    margin-bottom: 2px;
-    transition: transform 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    z-index: 1;
 }
-
 .bottom-nav-item.active .bottom-nav-icon {
-    transform: scale(1.1);
-    color: var(--accent-color);
-    /* App primary brand color */
+    transform: translateY(-2px) scale(1.1);
+    color: #818CF8;
+    filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.5));
+}
+.bottom-nav-item:active .bottom-nav-icon {
+    transform: scale(0.9);
 }
 
+/* ── LABEL ── */
 .bottom-nav-text {
-    font-size: 0.65rem;
+    font-size: 10px;
     font-weight: 600;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Inter', 'Rajdhani', sans-serif;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.06em;
+    transition: opacity 0.2s ease;
+    position: relative;
+    z-index: 1;
+    line-height: 1;
+}
+.bottom-nav-item.active .bottom-nav-text {
+    color: #818CF8;
 }
 
-/* 
-  ---------------------------------------------------------
-  MEDIA QUERIES (Hide on Desktop)
-  --------------------------------------------------------- 
-*/
+/* ── UPLOAD CENTER BUTTON ── */
+.bottom-nav-upload {
+    position: relative;
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #6366F1, #4F46E5);
+    border: 1px solid rgba(99, 102, 241, 0.5);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: #ffffff;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.bottom-nav-upload::before { display: none; }
+.bottom-nav-upload:active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+}
+.bottom-nav-upload:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 28px rgba(99, 102, 241, 0.55);
+}
+
+/* Glow pulse behind upload button */
+.bottom-nav-upload::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 18px;
+    background: rgba(99, 102, 241, 0.2);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.bottom-nav-upload:hover::after { opacity: 1; }
+
+/* ── HIDE ON DESKTOP ── */
 @media (min-width: 768px) {
-    .global-bottom-nav {
-        display: none;
-    }
+    .global-bottom-nav { display: none; }
 }

@@ -5,6 +5,7 @@ import api from '../../services/api'; // Or axios directly depending on your set
 import VideoCard from '../../components/video/VideoCard';
 import Skeleton from '../../components/ui/Skeleton';
 import { getAvatarUrl } from '../../utils/avatarUtils';
+import useSubscription from '../../hooks/useSubscription';
 import './Profile.css';
 
 const Profile = () => {
@@ -75,14 +76,17 @@ const Profile = () => {
     };
 
     fetchProfileAndVideos();
+    fetchProfileAndVideos();
   }, [username, user, isOwnProfile]);
 
+  const { isSubscribed: isChannelSubscribed, subscribersCount: subCountHook, toggle: toggleSubscribe } = useSubscription(profileData?._id || profileData?.username);
+
   const handleSubscribe = () => {
-    // API logic to subscribe/unsubscribe goes here
-    if (profileData) {
-      setProfileData({ ...profileData, isSubscribed: !profileData.isSubscribed });
-    }
+    toggleSubscribe();
   };
+
+  const currentSubscribersCount = subCountHook || profileData?.subscribersCount || 0;
+  const isCurrentlySubscribed = isChannelSubscribed || profileData?.isSubscribed;
 
   const avatarSrc = getAvatarUrl(profileData, profileData?.fullname || "Unknown User");
 
@@ -122,7 +126,7 @@ const Profile = () => {
                     <div className="profile-meta">
                         <span className="profile-handle">@{profileData?.username}</span>
                         <div className="profile-stats">
-                            <span><strong>{profileData?.subscribersCount || 0}</strong> subscribers</span>
+                            <span><strong>{currentSubscribersCount}</strong> subscribers</span>
                             <span><strong>{videos.length || 0}</strong> videos</span>
                         </div>
                     </div>
@@ -138,10 +142,10 @@ const Profile = () => {
                     </button>
                 ) : (
                     <button 
-                        className={`profile-btn ${profileData?.isSubscribed ? 'profile-btn-edit' : 'profile-btn-subscribe'}`}
+                        className={`profile-btn ${isCurrentlySubscribed ? 'profile-btn-edit' : 'profile-btn-subscribe'}`}
                         onClick={handleSubscribe}
                     >
-                        {profileData?.isSubscribed ? 'Subscribed' : 'Subscribe'}
+                        {isCurrentlySubscribed ? 'Subscribed' : 'Subscribe'}
                     </button>
                 )
             )}

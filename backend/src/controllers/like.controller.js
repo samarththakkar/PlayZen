@@ -1,181 +1,185 @@
 import { Like } from "../models/likes.model.js";
-import {asyncHandler} from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { Video } from "../models/video.model.js"
+import { Video } from "../models/video.model.js";
 import { Comment } from "../models/comments.model.js";
 import { Tweet } from "../models/tweets.model.js";
+import { updateUserInterests } from "./recommendation.controller.js";
+
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
-    if (!videoId) {
-        throw new ApiError(400, "Video id is required")
-    }
-    const video = await Video.findById(videoId)
-    if (!video) {
-        throw new ApiError(404, "Video not found")
-    }
 
-    const removedLike = await Like.findOne({
+    if (!videoId) throw new ApiError(400, "Video id is required");
+
+    const video = await Video.findById(videoId);
+    if (!video) throw new ApiError(404, "Video not found");
+
+    const existingLike = await Like.findOne({
         video: videoId,
-        likedBy: req.user?._id
-    })
-    if (removedLike) {
-        await Like.findByIdAndDelete(removedLike._id);
-        const updatedVideo = await Video.findByIdAndUpdate(videoId,
+        likedBy: req.user._id
+    });
+
+    if (existingLike) {
+        // Unlike
+        await Like.findByIdAndDelete(existingLike._id);
+
+        const updatedVideo = await Video.findByIdAndUpdate(
+            videoId,
+            // ✅ $max ensures likesCount never goes below 0
             { $inc: { likesCount: -1 } },
             { new: true }
         );
+
         return res.status(200).json(
-            new ApiResponse(200, { likesCount: updatedVideo.likesCount }, "Video unliked successfully")
-        )
+            new ApiResponse(200, {
+                likesCount: Math.max(0, updatedVideo.likesCount),
+                isLiked: false  // ✅ tell frontend current like status
+            }, "Video unliked successfully")
+        );
     }
-    await Like.create({
-        video: videoId,
-        likedBy: req.user?._id
-    })
-    const updatedVideo = await Video.findByIdAndUpdate(videoId,
+
+    // Like
+    await Like.create({ video: videoId, likedBy: req.user._id });
+
+    const updatedVideo = await Video.findByIdAndUpdate(
+        videoId,
         { $inc: { likesCount: 1 } },
         { new: true }
-    )
+    );
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, { likesCount: updatedVideo.likesCount }, "Video liked successfully")
-        )
+    // ✅ Update user interests when video is liked
+    await updateUserInterests(req.user._id, video, "like");
 
-})
+    return res.status(200).json(
+        new ApiResponse(200, {
+            likesCount: updatedVideo.likesCount,
+            isLiked: true  // ✅ tell frontend current like status
+        }, "Video liked successfully")
+    );
+});
+
 const toggleCommentLike = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
-    if (!commentId) {
-        throw new ApiError(400, "Comment id is required")
-    }
-    const comment = await Comment.findById(commentId)
-    if (!comment) {
-        throw new ApiError(404, "Comment not found")
-    }
-    const removedLike = await Like.findOne({
+
+    if (!commentId) throw new ApiError(400, "Comment id is required");
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) throw new ApiError(404, "Comment not found");
+
+    const existingLike = await Like.findOne({
         comment: commentId,
-        likedBy: req.user?._id
-    })
-    if (removedLike) {
-        await Like.findByIdAndDelete(removedLike._id);
-        const updatedComment = await Comment.findByIdAndUpdate(commentId,
+        likedBy: req.user._id
+    });
+
+    if (existingLike) {
+        await Like.findByIdAndDelete(existingLike._id);
+
+        const updatedComment = await Comment.findByIdAndUpdate(
+            commentId,
             { $inc: { likesCount: -1 } },
             { new: true }
         );
+
         return res.status(200).json(
-            new ApiResponse(200, { likesCount: updatedComment.likesCount }, "Comment unliked successfully")
-        )
+            new ApiResponse(200, {
+                likesCount: Math.max(0, updatedComment.likesCount),
+                isLiked: false  // ✅ like status
+            }, "Comment unliked successfully")
+        );
     }
-    await Like.create({
-        comment: commentId,
-        likedBy: req.user?._id
-    })
-    const updatedComment = await Comment.findByIdAndUpdate(commentId,
+
+    await Like.create({ comment: commentId, likedBy: req.user._id });
+
+    const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
         { $inc: { likesCount: 1 } },
         { new: true }
-    )
-    return res
-        .status(200)
-        .json(new ApiResponse(200, { likesCount: updatedComment.likesCount }, "Comment liked successfully"))
-})
+    );
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            likesCount: updatedComment.likesCount,
+            isLiked: true  // ✅ like status
+        }, "Comment liked successfully")
+    );
+});
+
 const toggleTweetLike = asyncHandler(async (req, res) => {
     const { tweetId } = req.params;
-    if (!tweetId) {
-        throw new ApiError(400, "Tweet id is required")
-    }
-    const tweet = await Tweet.findById(tweetId);
-    if (!tweet) {
-        throw new ApiError(404, "Tweet not found")
-    }
 
-    const removedLike = await Like.findOne({
+    if (!tweetId) throw new ApiError(400, "Tweet id is required");
+
+    const tweet = await Tweet.findById(tweetId);
+    if (!tweet) throw new ApiError(404, "Tweet not found");
+
+    const existingLike = await Like.findOne({
         tweet: tweetId,
-        likedBy: req.user?._id
+        likedBy: req.user._id
     });
-    if (removedLike) {
-        await Like.findByIdAndDelete(removedLike._id);
-        const updatedTweet = await Tweet.findByIdAndUpdate(tweetId,
+
+    if (existingLike) {
+        await Like.findByIdAndDelete(existingLike._id);
+
+        const updatedTweet = await Tweet.findByIdAndUpdate(
+            tweetId,
             { $inc: { likesCount: -1 } },
             { new: true }
         );
-        return res.status(200).json(
-            new ApiResponse(200, { likesCount: updatedTweet.likesCount }, "Tweet unliked successfully")
-        )
-    }
-    await Like.create({
-        tweet: tweetId,
-        likedBy: req.user?._id
-    })
-    const updatedTweet = await Tweet.findByIdAndUpdate(tweetId, {
-        $inc: { likesCount: 1 }
-    }, { new: true })
-    return res.status(200).json(
-        new ApiResponse(200, { likesCount: updatedTweet.likesCount }, "Tweet liked successfully")
-    )
-});
-const getLikedVideos = asyncHandler(async (req, res) => {
 
+        return res.status(200).json(
+            new ApiResponse(200, {
+                likesCount: Math.max(0, updatedTweet.likesCount),
+                isLiked: false  // ✅ like status
+            }, "Tweet unliked successfully")
+        );
+    }
+
+    await Like.create({ tweet: tweetId, likedBy: req.user._id });
+
+    const updatedTweet = await Tweet.findByIdAndUpdate(
+        tweetId,
+        { $inc: { likesCount: 1 } },
+        { new: true }
+    );
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            likesCount: updatedTweet.likesCount,
+            isLiked: true  // ✅ like status
+        }, "Tweet liked successfully")
+    );
+});
+
+// ✅ Also add getIsLiked — frontend needs to know
+// on page load if user has already liked something
+const getIsLiked = asyncHandler(async (req, res) => {
+    const { videoId, commentId, tweetId } = req.query;
+
+    if (!videoId && !commentId && !tweetId) {
+        throw new ApiError(400, "At least one id is required");
+    }
+
+    const query = { likedBy: req.user._id };
+    if (videoId) query.video = videoId;
+    if (commentId) query.comment = commentId;
+    if (tweetId) query.tweet = tweetId;
+
+    const like = await Like.findOne(query);
+
+    return res.status(200).json(
+        new ApiResponse(200, { isLiked: !!like }, "Like status fetched")
+    );
+});
+
+const getLikedVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
 
     const pageNumber = Math.max(1, Number(page));
     const limitNumber = Math.min(50, Number(limit));
 
-    const aggregate = Like.aggregate([
-        {
-            $match: {
-                likedBy: req.user._id,
-                video: { $exists: true }
-            }
-        },
-        {
-            $lookup: {
-                from: "videos",
-                localField: "video",
-                foreignField: "_id",
-                as: "video"
-            }
-        },
-        { $unwind: "$video" },
-        {
-            $match: {
-                "video.isPublished": true
-            }
-        },
-        {
-            $lookup: {
-                from: "users",
-                localField: "video.owner",
-                foreignField: "_id",
-                as: "video.owner",
-                pipeline: [
-                    {
-                        $project: {
-                            username: 1,
-                            fullname: 1,
-                            avatar: 1
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            $addFields: {
-                "video.owner": { $first: "$video.owner" }
-            }
-        },
-        {
-            $replaceRoot: {
-                newRoot: "$video"
-            }
-        },
-        {
-            $sort: { createdAt: -1 }
-        }
-    ]);
-
-    const likedVideos = await Like.aggregatePaginate(aggregate, {
+    const likedVideos = await Like.getPaginatedLikedVideos({
+        likedBy: req.user._id,
         page: pageNumber,
         limit: limitNumber
     });
@@ -189,5 +193,6 @@ export {
     toggleVideoLike,
     toggleCommentLike,
     toggleTweetLike,
-    getLikedVideos
-}
+    getLikedVideos,
+    getIsLiked  // ✅ export new function
+};

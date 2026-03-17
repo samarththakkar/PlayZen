@@ -1,320 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+/* ==========================================================================
+   Signup.css — Page-specific overrides
+   All base styles (inputs, buttons, layout) are in AuthLayout.css
+   Only add styles here that are UNIQUE to the signup page
+   ========================================================================== */
 
-html,
-body,
-#root {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    width: 100%;
-    font-family: 'Rajdhani', sans-serif;
-    background-color: var(--bg-color);
-    /* slate-900 */
-    color: var(--text-primary);
-    /* slate-50 */
-}
-
-.auth-container {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle at top right, #1A1A1A 0%, #000000 100%);
-    padding: 1rem;
-    box-sizing: border-box;
-    margin: 0;
-    overflow: hidden;
-}
-
-.auth-card {
-    background-color: #111111;
-    color: #ffffff;
-    /* slate-800 with opacity */
-    backdrop-filter: blur(12px);
-    width: 100%;
-    max-width: 400px;
-    /* Slightly narrower too */
-    border-radius: 12px;
-    border: 1px solid #2a2a2a;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    padding: 1.25rem 1.5rem;
-    /* Reduced padding */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.auth-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.auth-header {
+/* ── OTP STEP — timer text ── */
+.otp-timer {
     text-align: center;
-    margin-bottom: 0.5rem;
-    /* Reduced */
+    margin: 12px 0 18px;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
 }
 
-.auth-title {
-    font-family: 'Orbitron', 'Inter', sans-serif;
-    font-size: 1.55rem;
+.otp-timer-value {
     font-weight: 700;
-    color: #ffffff;
-    margin: 0 0 0.15rem 0;
-    letter-spacing: -0.5px;
+    color: #818CF8;
+    transition: color 0.3s;
 }
 
-.auth-subtitle {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    /* slate-400 */
-    margin-bottom: 0.75rem;
+.otp-timer-value.expiring {
+    color: #ef4444;
+    animation: timerPulse 1s ease-in-out infinite;
 }
 
-.auth-error-banner {
-    background-color: rgba(127, 29, 29, 0.3);
-    /* red-900 transparent */
-    color: #fca5a5;
-    /* red-300 */
-    padding: 0.6rem;
-    border-radius: 8px;
-    margin-bottom: 0.85rem;
-    font-size: 0.8rem;
-    text-align: center;
-    border: 1px solid rgba(248, 113, 113, 0.2);
+@keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.6; }
 }
 
-.auth-success-banner {
-    background-color: rgba(6, 78, 59, 0.3);
-    /* emerald-900 transparent */
-    color: #6ee7b7;
-    /* emerald-300 */
-    padding: 0.6rem;
-    border-radius: 8px;
-    margin-bottom: 0.85rem;
-    font-size: 0.8rem;
-    text-align: center;
-    border: 1px solid rgba(52, 211, 153, 0.2);
-}
-
-.auth-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-}
-
-.auth-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    /* Reduced */
-}
-
-.auth-label {
-    font-size: 0.85rem;
+/* ── CROP MODAL BUTTONS ── */
+.crop-btn {
+    padding: 9px 20px;
+    border-radius: 10px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary);
-    /* slate-300 */
-    margin-left: 0.1rem;
-    margin-bottom: 0.15rem;
-}
-
-.auth-input {
-    width: 100%;
-    padding: 0.55rem 0.75rem;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.05rem;
-    background-color: #161616;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
-    border-radius: 8px;
-    outline: none;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
-.auth-input:-webkit-autofill,
-.auth-input:-webkit-autofill:hover,
-.auth-input:-webkit-autofill:focus,
-.auth-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #1A1A1A inset !important;
-    -webkit-text-fill-color: var(--text-primary) !important;
-    transition: background-color 5000s ease-in-out 0s;
-}
-
-.auth-input::placeholder {
-    color: #666666;
-}
-
-.auth-input:focus {
-    border-color: var(--accent-color);
-    background-color: rgba(0, 0, 0, 0.8);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
-}
-
-.auth-file-group {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 0.1rem;
-}
-
-.file-upload-wrapper {
-    flex: 1;
-}
-
-.auth-file-input {
-    font-size: 0.75rem;
-    padding: 0.4rem;
-    border-radius: 8px;
-    background-color: #161616;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
-    /* fix error below  */
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-    box-sizing: border-box;
-    width: 100%;
-}
-
-.auth-file-input:hover {
-    border-color: var(--accent-color);
-    background: rgba(0, 0, 0, 0.6);
-}
-
-.auth-file-input::-webkit-file-upload-button {
-    background: var(--border-color);
-    color: var(--text-primary);
+    transition: all 0.2s ease;
     border: none;
-    border-radius: 4px;
-    padding: 0.2rem 0.4rem;
-    margin-right: 0.3rem;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 
-.auth-submit-btn {
-    margin-top: 0.35rem;
-    /* Reduced */
-    width: 100%;
-    padding: 0.6rem;
-    /* Reduced */
-    font-family: 'Orbitron', 'Outfit', sans-serif;
-    font-size: 0.95rem;
-    /* Reduced */
-    font-weight: 600;
-    color: #000000;
-    background-color: #111111;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(212, 212, 212, 0.4);
+.crop-btn.secondary {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
 }
-
-.auth-submit-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.6);
-    background: linear-gradient(135deg, #FFFFFF 0%, #E0E0E0 100%);
-}
-
-.auth-submit-btn:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.auth-submit-btn:disabled {
-    background: var(--border-color);
-    color: var(--text-muted);
-    box-shadow: none;
-    cursor: not-allowed;
-}
-
-.auth-footer {
-    margin-top: 2rem;
-    text-align: center;
-}
-
-.auth-footer-text {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-}
-
-.auth-link {
-    color: var(--accent-color);
-    /* indigo-400 */
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-.auth-link:hover {
-    color: #E0E0E0;
-    /* indigo-300 */
-    text-decoration: underline;
-}
-
-.otp-inputs-wrapper {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.otp-box-input {
-    width: 2.5rem;
-    height: 3rem;
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    background-color: #161616;
-    border: 1px solid #2a2a2a;
+.crop-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
     color: #ffffff;
-    border-radius: 8px;
-    outline: none;
-    transition: all 0.2s ease;
-    font-family: 'Outfit', sans-serif;
 }
 
-.otp-box-input:focus {
-    border-color: var(--accent-color);
-    background-color: rgba(0, 0, 0, 0.8);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+.crop-btn.primary {
+    background: linear-gradient(135deg, #6366F1, #4F46E5);
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
 }
-
-.avatar-preview-container .avatar-remove-btn {
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-}
-
-.avatar-preview-container:hover .avatar-remove-btn {
-    opacity: 1;
-    visibility: visible;
-}
-
-.crop-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-}
-
-.crop-modal-content {
-    background-color: #111111;
-    padding: 1.5rem;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 500px;
-    border: 1px solid #2a2a2a;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+.crop-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
 }
