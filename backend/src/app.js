@@ -7,11 +7,10 @@ const app = express();
 // Trigger reload 4
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://play-zen.vercel.app"
-  ],
-  credentials: true
+    origin: "https://play-zen.vercel.app",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.options('*', cors());
 app.use(express.json({ limit: "16kb" }))
