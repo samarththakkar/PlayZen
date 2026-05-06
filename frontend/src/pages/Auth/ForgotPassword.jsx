@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 
 /* Right panel only */
 const ForgotPassword = () => {
@@ -15,7 +15,7 @@ const ForgotPassword = () => {
     if (!email) { setError('Please enter your email address.'); return; }
     setLoading(true);
     try {
-      await axios.post('/api/v1/users/forgot-password', { email });
+      await api.post('/users/forgot-password', { email });
       setSuccess('If that email is registered, a reset code has been sent.');
       setTimeout(() => navigate('/reset-password', { state: { email } }), 2000);
     } catch (err) {
@@ -31,11 +31,11 @@ const ForgotPassword = () => {
       {error   && <div className="auth-sys-banner sys-error">{error}</div>}
       {success && <div className="auth-sys-banner sys-success">{success}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} autoComplete="on">
         <div className="auth-field">
           <label className="auth-label" htmlFor="fp-email">Email Address</label>
           <input
-            id="fp-email" type="email" className="auth-input"
+            id="fp-email" type="email" autoComplete="email" className="auth-input"
             placeholder="you@example.com"
             value={email} onChange={e => setEmail(e.target.value)}
           />

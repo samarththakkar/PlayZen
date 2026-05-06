@@ -7,12 +7,12 @@ const app = express();
 
 // ✅ CORS (FINAL FIX)
 app.use(cors({
-  origin: true, // allow all origins dynamically (fixes your issue)
+  origin: process.env.CORS_ORIGIN, // allow all origins dynamically (fixes your issue)
   credentials: true,
 }));
 
 // ✅ Handle preflight requests
-app.options("*", cors());
+// app.options("*", cors());
 
 // Middlewares
 app.use(express.json({ limit: "16kb" }));

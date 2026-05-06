@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import { Eye, EyeOff } from 'lucide-react';
 
 /* Right panel only */
@@ -47,7 +47,7 @@ const ResetPassword = () => {
     if (formData.newPassword !== formData.confirmPassword) { setError('Passwords do not match.'); return; }
     setLoading(true);
     try {
-      await axios.post('/api/v1/users/reset-password', { email, otp: otpValues.join(''), newPassword: formData.newPassword });
+      await api.post('/users/reset-password', { email, otp: otpValues.join(''), newPassword: formData.newPassword });
       setSuccess('Password reset successfully!');
       setTimeout(() => navigate('/login', { state:{ message:'Password reset. Please login with your new password.' } }), 2000);
     } catch (err) {
@@ -63,13 +63,13 @@ const ResetPassword = () => {
       {error   && <div className="auth-sys-banner sys-error">{error}</div>}
       {success && <div className="auth-sys-banner sys-success">{success}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} autoComplete="on">
         <div className="auth-field">
           <label className="auth-label">Verification Code</label>
           <div className="otp-wrapper">
             {otpValues.map((d, i) => (
               <input key={i} ref={el => inputRefs.current[i]=el}
-                type="text" inputMode="numeric" className="otp-input"
+                type="text" inputMode="numeric" autoComplete="one-time-code" className="otp-input"
                 value={d}
                 onChange={e => handleOtpChange(i, e.target.value)}
                 onKeyDown={e => handleOtpKeyDown(i, e)}
@@ -82,7 +82,7 @@ const ResetPassword = () => {
         <div className="auth-field">
           <label className="auth-label" htmlFor="newPassword">New Password</label>
           <div className="auth-input-wrap">
-            <input id="newPassword" name="newPassword" type={showPwd ? 'text' : 'password'}
+            <input id="newPassword" name="newPassword" type={showPwd ? 'text' : 'password'} autoComplete="new-password"
               className="auth-input" placeholder="At least 8 characters"
               value={formData.newPassword} onChange={handleInputChange}/>
             <button type="button" className="auth-eye-btn" onClick={() => setShowPwd(p => !p)}>
@@ -94,7 +94,7 @@ const ResetPassword = () => {
         <div className="auth-field">
           <label className="auth-label" htmlFor="confirmPassword">Confirm Password</label>
           <div className="auth-input-wrap">
-            <input id="confirmPassword" name="confirmPassword" type={showConf ? 'text' : 'password'}
+            <input id="confirmPassword" name="confirmPassword" type={showConf ? 'text' : 'password'} autoComplete="new-password"
               className="auth-input" placeholder="Repeat new password"
               value={formData.confirmPassword} onChange={handleInputChange}/>
             <button type="button" className="auth-eye-btn" onClick={() => setShowConf(p => !p)}>

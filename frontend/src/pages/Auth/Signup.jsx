@@ -1,120 +1,90 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import ReactCrop from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
-import { Eye, EyeOff, X, Camera } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import api from '../../services/api';
 import './Signup.css';
 
-/* Right panel only — layout & left panel live in AuthLayout */
 const Signup = () => {
   const navigate = useNavigate();
 
-  const [formData,     setFormData]     = useState({ fullName:'', email:'', username:'', password:'' });
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const [stepOneData, setStepOneData] = useState({ fullName: '', email: '' });
+  const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
+  const [stepThreeData, setStepThreeData] = useState({
+    username: '',
+    password: '',
+    coverImage: null,
+    avatar: null,
+  });
+
   const [showPassword, setShowPassword] = useState(false);
-  const [step,         setStep]         = useState(1);
-  const [otpValues,    setOtpValues]    = useState(['','','','','','']);
   const inputRefs = useRef([]);
-  const [success,      setSuccess]      = useState('');
-  const [timeLeft,     setTimeLeft]     = useState(60);
-  const [error,        setError]        = useState('');
-  const [loading,      setLoading]      = useState(false);
-  const [strengthIdx,  setStrengthIdx]  = useState(0);
+  const [strengthIdx, setStrengthIdx] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(600);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Avatar / crop states
-  const [avatar,        setAvatar]        = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const [imageSrc,      setImageSrc]      = useState('');
-  const [crop,          setCrop]          = useState();
-  const [completedCrop, setCompletedCrop] = useState(null);
-  const [isCropping,    setIsCropping]    = useState(false);
-  const imgRef = useRef(null);
-
-  // OTP countdown — auto-expire
   useEffect(() => {
     if (step !== 2) return;
-    if (timeLeft === 0) {
+    if (timeLeft <= 0) {
       setStep(1);
       setSuccess('');
-      setError('OTP expired. Please try again.');
-      setOtpValues(['','','','','','']);
+      setOtpValues(['', '', '', '', '', '']);
+      setError('OTP expired after 10 minutes. Please request a new code.');
       return;
     }
-    const t = setInterval(() => setTimeLeft(p => p - 1), 1000);
+    const t = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearInterval(t);
   }, [step, timeLeft]);
 
-  // ── INPUT HANDLERS ──
-  const handleInputChange = (e) => {
+  useEffect(() => {
+    if (step !== 2 || resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
+    return () => clearInterval(t);
+  }, [step, resendCooldown]);
+
+  const handleStepOneChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setStepOneData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleStepThreeChange = (e) => {
+    const { name, value } = e.target;
+    setStepThreeData((prev) => ({ ...prev, [name]: value }));
     if (name === 'password') {
       let s = 0;
-      if (value.length >= 4) s = 1;
+      if (value.length >= 6) s = 1;
       if (value.length >= 8 && /[A-Z]/.test(value)) s = 2;
       if (value.length >= 10 && /[!@#$%^&*]/.test(value)) s = 3;
       setStrengthIdx(s);
     }
   };
 
-  // ── AVATAR / CROP HANDLERS ──
-  const clearImage = () => {
-    setAvatar(null); setAvatarPreview('');
-    setImageSrc(''); setCrop(undefined); setCompletedCrop(null);
-  };
-
   const handleFileChange = (e) => {
-    if (e.target.files?.[0]) {
-      setCrop(undefined);
-      const reader = new FileReader();
-      reader.addEventListener('load', () => {
-        setImageSrc(reader.result?.toString() || '');
-        setIsCropping(true);
-      });
-      reader.readAsDataURL(e.target.files[0]);
-      e.target.value = '';
-    }
+    const { name, files } = e.target;
+    if (!files?.[0]) return;
+    setStepThreeData((prev) => ({ ...prev, [name]: files[0] }));
   };
 
-  const onImageLoad = (e) => {
-    if (!crop) setCrop({ unit:'%', width:80, height:80, x:10, y:10 });
-  };
-
-  const getCroppedImg = async (image, c) => {
-    const canvas = document.createElement('canvas');
-    const sx = image.naturalWidth  / image.width;
-    const sy = image.naturalHeight / image.height;
-    canvas.width  = c.width  * sx;
-    canvas.height = c.height * sy;
-    canvas.getContext('2d').drawImage(image, c.x*sx, c.y*sy, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-    return new Promise(res => canvas.toBlob(res, 'image/jpeg'));
-  };
-
-  const showCroppedImage = async () => {
-    if (!completedCrop || !imgRef.current) return;
-    try {
-      const blob = await getCroppedImg(imgRef.current, completedCrop);
-      setAvatar(new File([blob], 'avatar.jpg', { type:'image/jpeg' }));
-      setAvatarPreview(URL.createObjectURL(blob));
-      setIsCropping(false);
-    } catch {
-      setError('Error cropping image');
-    }
-  };
-
-  // ── STEP 1: Send OTP ──
-  const handleSignupSubmit = async (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     setError('');
-    if (!formData.fullName || !formData.email || !formData.username || !formData.password) {
-      setError('All fields are required.');
+    setSuccess('');
+
+    if (!stepOneData.fullName || !stepOneData.email) {
+      setError('Full name and email are required.');
       return;
     }
+
     setLoading(true);
     try {
-      await axios.post('/api/v1/users/send-otp', { email: formData.email, fullName: formData.fullName });
-      setSuccess(`OTP sent to ${formData.email}`);
-      setTimeLeft(60);
+      await api.post('/users/send-otp', stepOneData);
+      setSuccess(`OTP sent to ${stepOneData.email}`);
+      setTimeLeft(600);
+      setResendCooldown(60);
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
@@ -123,13 +93,16 @@ const Signup = () => {
     }
   };
 
-  // ── OTP INPUT HANDLERS ──
   const handleOtpChange = (idx, val) => {
     if (val && !/^[0-9]+$/.test(val)) return;
     const next = [...otpValues];
     next[idx] = val.slice(-1);
     setOtpValues(next);
     if (val && idx < 5) inputRefs.current[idx + 1]?.focus();
+    const composedOtp = next.join('');
+    if (step === 2 && composedOtp.length === 6 && !loading) {
+      verifyOtpCode(composedOtp);
+    }
   };
 
   const handleOtpKeyDown = (idx, e) => {
@@ -148,49 +121,102 @@ const Signup = () => {
     inputRefs.current[Math.min(data.length, 5)]?.focus();
   };
 
-  // ── STEP 2: Verify OTP + Register ──
-  const handleOtpSubmit = async (e) => {
-    e.preventDefault();
+  const verifyOtpCode = async (otp) => {
     setError('');
-    const otp = otpValues.join('');
-    if (otp.length !== 6) { setError('Enter all 6 digits.'); return; }
+    setSuccess('');
+    if (otp.length !== 6) {
+      setError('Enter all 6 digits.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await axios.post('/api/v1/users/verify-otp', { email: formData.email, otp });
-      setSuccess('Email verified! Finalizing…');
-      const data = new FormData();
-      Object.entries(formData).forEach(([k, v]) => data.append(k, v));
-      if (avatar) data.append('avatar', avatar);
-      await axios.post('/api/v1/users/register', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      navigate('/login', { state: { message: 'Registration successful. Please login!' } });
+      await api.post('/users/verify-otp', { email: stepOneData.email, otp });
+      setSuccess('Email verified. Complete your account details.');
+      setStep(3);
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid or expired OTP.');
+    } finally {
       setLoading(false);
     }
   };
 
-  // ── RENDER ──
+  const handleOtpVerify = async (e) => {
+    e.preventDefault();
+    const otp = otpValues.join('');
+    await verifyOtpCode(otp);
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setError('');
+    setSuccess('');
+    try {
+      await api.post('/users/send-otp', stepOneData);
+      setSuccess('A new OTP was sent.');
+      setOtpValues(['', '', '', '', '', '']);
+      setResendCooldown(60);
+      setTimeLeft(600);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not resend OTP.');
+    }
+  };
+
+  const handleFinalRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!stepThreeData.username || !stepThreeData.password || !stepThreeData.avatar) {
+      setError('Username, password, and avatar are required.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = new FormData();
+      data.append('fullName', stepOneData.fullName);
+      data.append('email', stepOneData.email);
+      data.append('username', stepThreeData.username);
+      data.append('password', stepThreeData.password);
+      data.append('avatar', stepThreeData.avatar);
+      if (stepThreeData.coverImage) {
+        data.append('coverImage', stepThreeData.coverImage);
+      }
+      await api.post('/users/register', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      navigate('/login', { state: { message: 'Registration successful. Please login!' } });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to complete registration.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  };
+
   return (
     <>
-      <div className="form-title">
-        {step === 1 ? 'Create Account' : 'Verify Email'}
-      </div>
+      <div className="form-title">{step === 1 ? 'Create Account' : step === 2 ? 'Verify Email' : 'Complete Profile'}</div>
       <div className="form-sub">
         {step === 1
-          ? 'Join PlayZen and start creating today.'
-          : <span>We sent a 6-digit code to <strong>{formData.email}</strong></span>
+          ? 'Step 1 of 3: Enter your basic details to get an OTP.'
+          : step === 2
+            ? <span>Step 2 of 3: We sent a 6-digit code to <strong>{stepOneData.email}</strong>.</span>
+            : 'Step 3 of 3: Choose account credentials and upload your profile media.'
         }
       </div>
 
-      {error   && <div className="auth-sys-banner sys-error">{error}</div>}
+      <div className="signup-stepper">Step {step} / 3</div>
+
+      {error && <div className="auth-sys-banner sys-error">{error}</div>}
       {success && <div className="auth-sys-banner sys-success">{success}</div>}
 
-      {/* ══ STEP 1 ══ */}
       {step === 1 && (
         <>
-          {/* Google */}
           <button
             type="button"
             className="auth-social-btn"
@@ -202,84 +228,42 @@ const Signup = () => {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Sign up with Google
+            Continue with Google
           </button>
 
           <div className="auth-divider">
             <div className="auth-dline"></div>
-            <div className="auth-dor">or sign up with email</div>
+            <div className="auth-dor">or register with email</div>
             <div className="auth-dline"></div>
           </div>
 
-          <form onSubmit={handleSignupSubmit} encType="multipart/form-data">
-
-            {/* Name + Username */}
-            <div className="auth-grid-2">
-              <div className="auth-field">
-                <label className="auth-label">Full Name</label>
-                <input
-                  type="text" name="fullName" className="auth-input"
-                  placeholder="John Doe"
-                  value={formData.fullName} onChange={handleInputChange}
-                />
-              </div>
-              <div className="auth-field">
-                <label className="auth-label">Username</label>
-                <input
-                  type="text" name="username" className="auth-input"
-                  placeholder="johndoe123"
-                  value={formData.username} onChange={handleInputChange}
-                />
-              </div>
+          <form onSubmit={handleSendOtp} autoComplete="on">
+            <div className="auth-field">
+              <label className="auth-label">Full Name</label>
+              <input
+                type="text"
+                name="fullName"
+                autoComplete="name"
+                className="auth-input"
+                placeholder="John Doe"
+                value={stepOneData.fullName}
+                onChange={handleStepOneChange}
+              />
             </div>
-
-            {/* Email */}
             <div className="auth-field">
               <label className="auth-label">Email Address</label>
               <input
-                type="email" name="email" className="auth-input"
+                type="email"
+                name="email"
+                autoComplete="email"
+                className="auth-input"
                 placeholder="you@example.com"
-                value={formData.email} onChange={handleInputChange}
+                value={stepOneData.email}
+                onChange={handleStepOneChange}
               />
             </div>
-
-            {/* Password + strength */}
-            <div className="auth-field">
-              <label className="auth-label">Password</label>
-              <div className="auth-input-wrap">
-                <input
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="auth-input"
-                  placeholder="Create a strong password"
-                  value={formData.password} onChange={handleInputChange}
-                />
-                <button
-                  type="button" className="auth-eye-btn"
-                  onClick={() => setShowPassword(p => !p)}
-                >
-                  {showPassword ? <EyeOff size={15}/> : <Eye size={15}/>}
-                </button>
-              </div>
-              {formData.password && (
-                <div className="strength-bar">
-                  <div className={`strength-seg ${strengthIdx >= 1 ? 's1' : ''}`}></div>
-                  <div className={`strength-seg ${strengthIdx >= 2 ? 's2' : ''}`}></div>
-                  <div className={`strength-seg ${strengthIdx >= 3 ? 's3' : ''}`}></div>
-                </div>
-              )}
-            </div>
-
-            {/* Terms */}
-            <div className="auth-terms">
-              <input type="checkbox" id="terms" required/>
-              <label htmlFor="terms">
-                I agree to the <Link to="#">Terms of Service</Link> and <Link to="#">Privacy Policy</Link>
-              </label>
-            </div>
-
             <button type="submit" className="auth-submit-btn" disabled={loading}>
-              {loading ? 'Processing…' : 'Create Account'}
+              {loading ? 'Sending OTP…' : 'Send OTP'}
             </button>
           </form>
 
@@ -289,9 +273,8 @@ const Signup = () => {
         </>
       )}
 
-      {/* ══ STEP 2 — OTP ══ */}
       {step === 2 && (
-        <form onSubmit={handleOtpSubmit}>
+        <form onSubmit={handleOtpVerify} autoComplete="one-time-code">
           <div className="otp-wrapper">
             {otpValues.map((d, i) => (
               <input
@@ -299,6 +282,7 @@ const Signup = () => {
                 ref={el => inputRefs.current[i] = el}
                 type="text"
                 inputMode="numeric"
+                autoComplete="one-time-code"
                 className="otp-input"
                 value={d}
                 onChange={e => handleOtpChange(i, e.target.value)}
@@ -308,11 +292,10 @@ const Signup = () => {
             ))}
           </div>
 
-          {/* Timer using Signup.css classes */}
           <div className="otp-timer">
             Time remaining:{' '}
             <span className={`otp-timer-value ${timeLeft <= 10 ? 'expiring' : ''}`}>
-              00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
+              {formatTime(timeLeft)}
             </span>
           </div>
 
@@ -321,62 +304,84 @@ const Signup = () => {
             className="auth-submit-btn"
             disabled={loading || timeLeft === 0}
           >
-            {loading ? 'Verifying…' : 'Verify & Create Account'}
+            {loading ? 'Verifying…' : 'Verify OTP'}
           </button>
 
-          <div className="auth-footer-links" style={{ marginTop: '12px' }}>
-            Wrong email?{' '}
-            <Link
-              to="#"
-              onClick={e => {
-                e.preventDefault();
+          <div className="auth-footer-links signup-actions-row">
+            <button type="button" className="link-btn" onClick={handleResendOtp} disabled={resendCooldown > 0}>
+              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+            </button>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
                 setStep(1);
-                setSuccess('');
-                setOtpValues(['','','','','','']);
+                setOtpValues(['', '', '', '', '', '']);
                 setError('');
+                setSuccess('');
               }}
             >
-              Go back
-            </Link>
+              Edit email
+            </button>
           </div>
         </form>
       )}
 
-      {/* ══ CROP MODAL ══ */}
-      {isCropping && (
-        <div className="crop-modal-overlay">
-          <div className="crop-modal-content">
-            <h3 style={{ margin:'0 0 1rem', color:'#fff', textAlign:'center', fontFamily:'Syne, sans-serif', fontSize:'16px', fontWeight:600 }}>
-              Crop Your Image
-            </h3>
-            <div style={{ maxHeight:'60vh', overflow:'auto', display:'flex', justifyContent:'center', borderRadius:'10px', background:'#1a1a26' }}>
-              <ReactCrop
-                crop={crop}
-                onChange={(_, p) => setCrop(p)}
-                onComplete={c => setCompletedCrop(c)}
-                circularCrop
-                aspect={1}
-                style={{ maxHeight:'60vh' }}
-              >
-                <img
-                  ref={imgRef}
-                  src={imageSrc}
-                  onLoad={onImageLoad}
-                  alt="Crop preview"
-                  style={{ maxHeight:'60vh', width:'auto' }}
-                />
-              </ReactCrop>
+      {step === 3 && (
+        <form onSubmit={handleFinalRegister} autoComplete="on">
+          <div className="auth-field">
+            <label className="auth-label">Username</label>
+            <input
+              type="text"
+              name="username"
+                autoComplete="username"
+              className="auth-input"
+              placeholder="johndoe123"
+              value={stepThreeData.username}
+              onChange={handleStepThreeChange}
+            />
+          </div>
+
+          <div className="auth-field">
+            <label className="auth-label">Password</label>
+            <div className="auth-input-wrap">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                autoComplete="new-password"
+                className="auth-input"
+                placeholder="Create a secure password"
+                value={stepThreeData.password}
+                onChange={handleStepThreeChange}
+              />
+              <button type="button" className="auth-eye-btn" onClick={() => setShowPassword((prev) => !prev)}>
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
             </div>
-            <div style={{ display:'flex', gap:'10px', marginTop:'1.25rem', justifyContent:'flex-end' }}>
-              <button type="button" onClick={() => setIsCropping(false)} className="crop-btn secondary">
-                Cancel
-              </button>
-              <button type="button" onClick={showCroppedImage} className="crop-btn primary">
-                Crop & Save
-              </button>
+            {stepThreeData.password && (
+              <div className="strength-bar">
+                <div className={`strength-seg ${strengthIdx >= 1 ? 's1' : ''}`}></div>
+                <div className={`strength-seg ${strengthIdx >= 2 ? 's2' : ''}`}></div>
+                <div className={`strength-seg ${strengthIdx >= 3 ? 's3' : ''}`}></div>
+              </div>
+            )}
+          </div>
+
+          <div className="auth-grid-2">
+            <div className="auth-field">
+              <label className="auth-label">Avatar (required)</label>
+              <input type="file" name="avatar" className="auth-input auth-file-input" accept="image/*" onChange={handleFileChange} />
+            </div>
+            <div className="auth-field">
+              <label className="auth-label">Cover Image (optional)</label>
+              <input type="file" name="coverImage" className="auth-input auth-file-input" accept="image/*" onChange={handleFileChange} />
             </div>
           </div>
-        </div>
+
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
+            {loading ? 'Creating account…' : 'Create Account'}
+          </button>
+        </form>
       )}
     </>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -10,16 +10,10 @@ const Login = () => {
   const { login } = useAuth();
   const messageFromState = location.state?.message || '';
 
-  const [formData,     setFormData]     = useState({ identifier: '', password: '' });
+  const [formData,     setFormData]     = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState('');
-  const [isShaking,    setIsShaking]    = useState(false);
-
-  const triggerShake = () => {
-    setIsShaking(true);
-    setTimeout(() => setIsShaking(false), 500);
-  };
 
   const handleInputChange = (e) =>
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -27,22 +21,16 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!formData.identifier || !formData.password) {
+    if (!formData.email || !formData.password) {
       setError('Please fill in all fields.');
-      triggerShake();
       return;
     }
     setLoading(true);
     try {
-      const isEmail = formData.identifier.includes('@');
-      const payload = { password: formData.password };
-      if (isEmail) payload.email    = formData.identifier;
-      else         payload.username = formData.identifier;
-      await login(payload);
+      await login({ email: formData.email, password: formData.password });
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
-      triggerShake();
     } finally {
       setLoading(false);
     }
@@ -51,7 +39,7 @@ const Login = () => {
   return (
     <>
       <div className="form-title">Welcome Back</div>
-      <div className="form-sub">Sign in to continue to your workspace.</div>
+      <div className="form-sub">Sign in to continue to your creator dashboard.</div>
 
       {messageFromState && <div className="auth-sys-banner sys-success">{messageFromState}</div>}
       {error            && <div className="auth-sys-banner sys-error">{error}</div>}
@@ -71,17 +59,17 @@ const Login = () => {
 
       <div className="auth-divider">
         <div className="auth-dline"></div>
-        <div className="auth-dor">or sign in with email</div>
+        <div className="auth-dor">or continue with email</div>
         <div className="auth-dline"></div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} autoComplete="on">
         <div className="auth-field">
-          <label className="auth-label" htmlFor="identifier">Email or Username</label>
+          <label className="auth-label" htmlFor="email">Email Address</label>
           <input
-            id="identifier" name="identifier" type="text"
+            id="email" name="email" type="email" autoComplete="email"
             className="auth-input" placeholder="you@example.com"
-            value={formData.identifier} onChange={handleInputChange}
+            value={formData.email} onChange={handleInputChange}
           />
         </div>
 
@@ -94,6 +82,7 @@ const Login = () => {
             <input
               id="password" name="password"
               type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
               className="auth-input" placeholder="Enter your password"
               value={formData.password} onChange={handleInputChange}
             />
@@ -103,18 +92,13 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="auth-terms">
-          <input type="checkbox" id="rem"/>
-          <label htmlFor="rem">Remember me</label>
-        </div>
-
         <button type="submit" className="auth-submit-btn" disabled={loading}>
           {loading ? 'Logging in…' : 'Sign In'}
         </button>
       </form>
 
       <div className="auth-footer-links">
-        Don't have an account? <Link to="/signup">Sign up</Link>
+        Don't have an account? <Link to="/register">Sign up</Link>
       </div>
     </>
   );

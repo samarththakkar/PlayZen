@@ -1,62 +1,71 @@
-/* ==========================================================================
-   Signup.css — Page-specific overrides
-   All base styles (inputs, buttons, layout) are in AuthLayout.css
-   Only add styles here that are UNIQUE to the signup page
-   ========================================================================== */
-
-/* ── OTP STEP — timer text ── */
 .otp-timer {
-    text-align: center;
-    margin: 12px 0 18px;
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 13px;
-    font-family: 'Inter', sans-serif;
+  text-align: center;
+  margin: 12px 0 18px;
+  color: #aaaaaa;
+  font-size: 13px;
 }
 
 .otp-timer-value {
-    font-weight: 700;
-    color: #818CF8;
-    transition: color 0.3s;
+  font-weight: 700;
+  color: #3ea6ff;
+  transition: color 0.3s;
 }
 
 .otp-timer-value.expiring {
-    color: #ef4444;
-    animation: timerPulse 1s ease-in-out infinite;
+  color: #ff0000;
+  animation: timerPulse 1s ease-in-out infinite;
 }
 
 @keyframes timerPulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.6; }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
-/* ── CROP MODAL BUTTONS ── */
-.crop-btn {
-    padding: 9px 20px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
+.signup-stepper {
+  margin: -4px auto 12px;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(61, 61, 61, 0.85);
+  color: #aaaaaa;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.crop-btn.secondary {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-}
-.crop-btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
+.signup-actions-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
 }
 
-.crop-btn.primary {
-    background: linear-gradient(135deg, #6366F1, #4F46E5);
-    color: #ffffff;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+.link-btn {
+  background: transparent;
+  border: none;
+  color: #3ea6ff;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
 }
-.crop-btn.primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
+
+.link-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-file-input {
+  padding: 9px 12px;
+  font-size: 12px;
+}
+
+.auth-file-input::file-selector-button {
+  margin-right: 8px;
+  border: 1px solid #3d3d3d;
+  border-radius: 8px;
+  background: #212121;
+  color: #ffffff;
+  padding: 6px 10px;
+  cursor: pointer;
 }

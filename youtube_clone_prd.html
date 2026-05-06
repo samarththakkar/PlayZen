@@ -1,0 +1,670 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.prd { max-width: 680px; padding: 0 0 40px; }
+.hero { padding: 28px 0 20px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 24px; }
+.hero h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.hero p { font-size: 14px; color: var(--color-text-secondary); }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 4px; margin-right: 6px; margin-bottom: 6px; }
+.badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+.badge-green { background: var(--color-background-success); color: var(--color-text-success); }
+.badge-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+.badge-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+
+.tabs { display: flex; gap: 2px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 24px; overflow-x: auto; }
+.tab { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; border: none; background: none; white-space: nowrap; border-bottom: 2px solid transparent; transition: all .15s; }
+.tab:hover { color: var(--color-text-primary); }
+.tab.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.section-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.sub-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; margin-top: 20px; }
+
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 12px; }
+.card-sm { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; margin-bottom: 8px; }
+.card-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.card-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+
+.color-swatch { height: 56px; border-radius: var(--border-radius-md); margin-bottom: 6px; }
+.color-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+.color-hex { font-size: 11px; color: var(--color-text-secondary); font-family: var(--font-mono); }
+
+.font-row { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: baseline; justify-content: space-between; }
+.font-label { font-size: 11px; color: var(--color-text-secondary); }
+
+.endpoint { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 10px; }
+.method { font-size: 11px; font-weight: 500; font-family: var(--font-mono); padding: 2px 6px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+.method.get { background: #E6F1FB; color: #185FA5; }
+.method.post { background: #EAF3DE; color: #3B6D11; }
+.method.patch { background: #FAEEDA; color: #854F0B; }
+.method.delete { background: #FCEBEB; color: #A32D2D; }
+.endpoint-path { font-size: 12px; font-family: var(--font-mono); color: var(--color-text-primary); margin-bottom: 2px; }
+.endpoint-desc { font-size: 11px; color: var(--color-text-secondary); }
+
+.auth-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 7px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+.auth-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+.page-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.page-icon { width: 32px; height: 32px; border-radius: var(--border-radius-md); background: var(--color-background-secondary); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.page-info { flex: 1; }
+.page-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.page-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.page-badges { margin-top: 4px; }
+
+.logic-item { border-left: 2px solid var(--color-border-secondary); padding: 8px 0 8px 14px; margin-bottom: 10px; }
+.logic-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.logic-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; }
+
+.important { background: var(--color-background-warning); border: 0.5px solid var(--color-border-warning); border-radius: var(--border-radius-md); padding: 10px 12px; margin-bottom: 12px; }
+.important-text { font-size: 12px; color: var(--color-text-warning); line-height: 1.5; }
+
+.progress-bar { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; margin: 6px 0; }
+.progress-fill { height: 100%; border-radius: 2px; }
+
+.tech-tag { display: inline-block; font-size: 11px; font-family: var(--font-mono); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: 4px; padding: 2px 6px; margin: 2px; color: var(--color-text-secondary); }
+</style>
+
+<div class="prd">
+  <div class="hero">
+    <h1>YouTube Clone — Frontend PRD</h1>
+    <p>Product Requirements Document · Based on Express + MongoDB backend analysis</p>
+    <div style="margin-top: 12px;">
+      <span class="badge badge-blue">React + Vite</span>
+      <span class="badge badge-green">REST API v1</span>
+      <span class="badge badge-amber">JWT + Google OAuth</span>
+      <span class="badge badge-red">Cloudinary Media</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('colors')">Colors & Typography</button>
+    <button class="tab" onclick="showTab('pages')">Pages & Routes</button>
+    <button class="tab" onclick="showTab('apis')">API Reference</button>
+    <button class="tab" onclick="showTab('logic')">Key Frontend Logic</button>
+    <button class="tab" onclick="showTab('components')">Components</button>
+    <button class="tab" onclick="showTab('cursor')">Cursor Guide</button>
+  </div>
+
+  <!-- TAB 1: Colors & Typography -->
+  <div id="tab-colors" class="panel active">
+    <div class="section-title">Color Palette</div>
+    <div class="important">
+      <div class="important-text">Inspired by YouTube's dark-first design. Primary black with warm red accents. Surfaces are near-black in dark mode, clean white in light mode.</div>
+    </div>
+    
+    <div class="sub-title">Primary Colors</div>
+    <div class="grid3">
+      <div>
+        <div class="color-swatch" style="background:#FF0000;"></div>
+        <div class="color-name">Brand Red</div>
+        <div class="color-hex">#FF0000</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Subscribe BTN, Likes, Alerts</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#CC0000;"></div>
+        <div class="color-name">Red Dark</div>
+        <div class="color-hex">#CC0000</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Hover states on red</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#FF4444;"></div>
+        <div class="color-name">Red Light</div>
+        <div class="color-hex">#FF4444</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Active like, notifications</div>
+      </div>
+    </div>
+
+    <div class="sub-title">Background Surfaces</div>
+    <div class="grid3">
+      <div>
+        <div class="color-swatch" style="background:#0F0F0F; border: 0.5px solid var(--color-border-tertiary);"></div>
+        <div class="color-name">Dark Base</div>
+        <div class="color-hex">#0F0F0F</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">App background (dark)</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#212121; border: 0.5px solid var(--color-border-tertiary);"></div>
+        <div class="color-name">Surface Dark</div>
+        <div class="color-hex">#212121</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Cards, sidebar (dark)</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#3D3D3D; border: 0.5px solid var(--color-border-tertiary);"></div>
+        <div class="color-name">Border Dark</div>
+        <div class="color-hex">#3D3D3D</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Dividers, borders (dark)</div>
+      </div>
+    </div>
+    <div class="grid3">
+      <div>
+        <div class="color-swatch" style="background:#FFFFFF; border: 0.5px solid #e0e0e0;"></div>
+        <div class="color-name">Light Base</div>
+        <div class="color-hex">#FFFFFF</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">App background (light)</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#F2F2F2; border: 0.5px solid #e0e0e0;"></div>
+        <div class="color-name">Surface Light</div>
+        <div class="color-hex">#F2F2F2</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Cards, sidebar (light)</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#E5E5E5; border: 0.5px solid #e0e0e0;"></div>
+        <div class="color-name">Border Light</div>
+        <div class="color-hex">#E5E5E5</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Dividers, borders (light)</div>
+      </div>
+    </div>
+
+    <div class="sub-title">Text & Accent</div>
+    <div class="grid3">
+      <div>
+        <div class="color-swatch" style="background:#FFFFFF; border: 0.5px solid var(--color-border-tertiary);"></div>
+        <div class="color-name">Primary Text</div>
+        <div class="color-hex">#FFFFFF / #0F0F0F</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Titles, headings</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#AAAAAA; border: 0.5px solid var(--color-border-tertiary);"></div>
+        <div class="color-name">Secondary Text</div>
+        <div class="color-hex">#AAAAAA / #606060</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Metadata, timestamps</div>
+      </div>
+      <div>
+        <div class="color-swatch" style="background:#3EA6FF;"></div>
+        <div class="color-name">Info Blue</div>
+        <div class="color-hex">#3EA6FF</div>
+        <div class="color-hex" style="color:var(--color-text-tertiary)">Links, hashtags, OTP</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:28px;">Typography</div>
+    <div class="card-sm" style="margin-bottom:4px;">
+      <div class="font-label">Font Family</div>
+      <div style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin-top:4px;">'Roboto', -apple-system, sans-serif</div>
+    </div>
+
+    <div class="sub-title">Type Scale</div>
+    <div class="font-row">
+      <div style="font-size:28px;font-weight:500;color:var(--color-text-primary);">Video Title</div>
+      <div class="font-label">28px / 500 — Hero titles</div>
+    </div>
+    <div class="font-row">
+      <div style="font-size:20px;font-weight:500;color:var(--color-text-primary);">Section Heading</div>
+      <div class="font-label">20px / 500 — Page headings</div>
+    </div>
+    <div class="font-row">
+      <div style="font-size:16px;font-weight:500;color:var(--color-text-primary);">Card Title / Channel Name</div>
+      <div class="font-label">16px / 500 — Video card titles</div>
+    </div>
+    <div class="font-row">
+      <div style="font-size:14px;font-weight:400;color:var(--color-text-primary);">Body / Description Text</div>
+      <div class="font-label">14px / 400 — Body, comments</div>
+    </div>
+    <div class="font-row">
+      <div style="font-size:12px;font-weight:400;color:var(--color-text-secondary);">Metadata · 120K views · 2 days ago</div>
+      <div class="font-label">12px / 400 — Timestamps, meta</div>
+    </div>
+    <div class="font-row">
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);">CATEGORY CHIP</div>
+      <div class="font-label">11px / 500 — Tags, chips</div>
+    </div>
+    
+    <div class="sub-title">Tech Stack</div>
+    <div style="margin-bottom:16px;">
+      <span class="tech-tag">React 18</span>
+      <span class="tech-tag">Vite</span>
+      <span class="tech-tag">React Router v6</span>
+      <span class="tech-tag">TanStack Query</span>
+      <span class="tech-tag">Zustand</span>
+      <span class="tech-tag">Tailwind CSS</span>
+      <span class="tech-tag">Axios</span>
+      <span class="tech-tag">React Player</span>
+      <span class="tech-tag">React Hook Form</span>
+      <span class="tech-tag">Lucide React</span>
+    </div>
+  </div>
+
+  <!-- TAB 2: Pages & Routes -->
+  <div id="tab-pages" class="panel">
+    <div class="section-title">Application Pages</div>
+
+    <div class="sub-title">Auth Pages (Public)</div>
+    <div class="page-row">
+      <div class="page-icon">🔐</div>
+      <div class="page-info">
+        <div class="page-name">/register — Registration Flow</div>
+        <div class="page-desc">3-step: email+name → OTP verify (6-digit, 10 min expiry, resend) → username+password+avatar setup. Uploads avatar + cover image to Cloudinary via multipart.</div>
+        <div class="page-badges"><span class="badge badge-blue">OTP Email</span><span class="badge badge-green">File Upload</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">🚪</div>
+      <div class="page-info">
+        <div class="page-name">/login — Login</div>
+        <div class="page-desc">Email+password login. Google OAuth button redirects to /api/v1/users/auth/google, returns to /?login=success. Store access+refresh tokens in httpOnly cookies.</div>
+        <div class="page-badges"><span class="badge badge-blue">Google OAuth</span><span class="badge badge-amber">JWT Cookie</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">🔑</div>
+      <div class="page-info">
+        <div class="page-name">/forgot-password — Password Reset</div>
+        <div class="page-desc">2-step: send OTP to email → verify OTP + new password. OTP expires in 10 min. Max 5 attempts tracked.</div>
+        <div class="page-badges"><span class="badge badge-amber">Rate Limited</span></div>
+      </div>
+    </div>
+
+    <div class="sub-title">Core Pages</div>
+    <div class="page-row">
+      <div class="page-icon">🏠</div>
+      <div class="page-info">
+        <div class="page-name">/ — Home Feed</div>
+        <div class="page-desc">Category filter chips (from API). Paginated video grid. For logged-in users: recommended videos from interest engine. For guests: latest videos. Infinite scroll via page param.</div>
+        <div class="page-badges"><span class="badge badge-green">Recommendation Engine</span><span class="badge badge-blue">Category Filter</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">▶️</div>
+      <div class="page-info">
+        <div class="page-name">/watch/:videoId — Video Player</div>
+        <div class="page-desc">Full player with React Player. Track progress every 5s (currentTime + duration → watchProgress API). Auto-mark complete at 90%+. Like/dislike, comments section, related videos sidebar, subscribe button, watch later. Report watch history.</div>
+        <div class="page-badges"><span class="badge badge-red">Watch Progress</span><span class="badge badge-green">Auto-complete 90%</span><span class="badge badge-blue">Interest Tracking</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">🔍</div>
+      <div class="page-info">
+        <div class="page-name">/search — Search Results</div>
+        <div class="page-desc">Query param ?q=. Shows matching videos, channels, shorts. Debounced search bar. Results from /api/v1/search/query.</div>
+        <div class="page-badges"><span class="badge badge-blue">Debounce 300ms</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">📱</div>
+      <div class="page-info">
+        <div class="page-name">/shorts — Shorts Feed</div>
+        <div class="page-desc">Vertical full-screen scroll feed. TikTok-style snapping. Each short autoplay on scroll into view. Like + share buttons overlay. isShort=true flag on videos.</div>
+        <div class="page-badges"><span class="badge badge-red">Autoplay</span><span class="badge badge-blue">Snap Scroll</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">📺</div>
+      <div class="page-info">
+        <div class="page-name">/subscriptions — Subscription Feed</div>
+        <div class="page-desc">Videos from subscribed channels only. JWT required. Uses /videos/subscriptions-feed endpoint. Shows "subscribe to channels" CTA if empty.</div>
+        <div class="page-badges"><span class="badge badge-amber">Auth Required</span></div>
+      </div>
+    </div>
+
+    <div class="sub-title">Channel & Profile</div>
+    <div class="page-row">
+      <div class="page-icon">👤</div>
+      <div class="page-info">
+        <div class="page-name">/channel/:username — Channel Page</div>
+        <div class="page-desc">Cover image banner, avatar, fullname, subscriber count, "Subscribed/Subscribe" toggle, "Channels subscribed to" count. Tabs: Videos | Playlists | Community (Tweets). isSubscribed state from channel profile API.</div>
+        <div class="page-badges"><span class="badge badge-blue">Subscribe Toggle</span><span class="badge badge-green">Tabs</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">⚙️</div>
+      <div class="page-info">
+        <div class="page-name">/settings — Account Settings</div>
+        <div class="page-desc">Update fullname, email, avatar, cover image. Change password (old + new). Privacy and notification preferences from settings model.</div>
+        <div class="page-badges"><span class="badge badge-amber">Auth Required</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">📚</div>
+      <div class="page-info">
+        <div class="page-name">/playlists/:playlistId — Playlist View</div>
+        <div class="page-desc">Playlist header with title, description, video count. Ordered video list. Creator can add/remove videos. Watch all button plays first video and queues rest.</div>
+        <div class="page-badges"><span class="badge badge-green">CRUD Playlist</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">🕐</div>
+      <div class="page-info">
+        <div class="page-name">/watch-later — Watch Later Queue</div>
+        <div class="page-desc">User's saved videos. Add/remove from any video card (bookmark icon). Paginated list. Unique constraint: one video per user.</div>
+        <div class="page-badges"><span class="badge badge-amber">Auth Required</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">📜</div>
+      <div class="page-info">
+        <div class="page-name">/history — Watch History</div>
+        <div class="page-desc">Chronological list of watched videos. Clear all history. Uses watchHistory array on User model via /users/watch-history.</div>
+        <div class="page-badges"><span class="badge badge-amber">Auth Required</span></div>
+      </div>
+    </div>
+
+    <div class="sub-title">Creator Studio</div>
+    <div class="page-row">
+      <div class="page-icon">🎬</div>
+      <div class="page-info">
+        <div class="page-name">/studio — Creator Dashboard</div>
+        <div class="page-desc">Video management table: title, views, likes, published toggle (isPublished), edit, delete. Uses /videos/studio-videos. Upload video button with drag-drop.</div>
+        <div class="page-badges"><span class="badge badge-red">Creator Only</span><span class="badge badge-blue">Publish Toggle</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">🐦</div>
+      <div class="page-info">
+        <div class="page-name">/community — Community Posts (Tweets)</div>
+        <div class="page-desc">Text-based posts with like/dislike. All tweets feed + user tweets. Create, edit, delete own tweets. LikesCount on tweet model.</div>
+        <div class="page-badges"><span class="badge badge-blue">Like System</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">🔔</div>
+      <div class="page-info">
+        <div class="page-name">/notifications — Notifications</div>
+        <div class="page-desc">Types: new_video, new_tweet from subscribed channels. Mark as read / mark all read. Unread count badge on bell icon. Uses notification model with isRead flag.</div>
+        <div class="page-badges"><span class="badge badge-amber">Unread Count</span></div>
+      </div>
+    </div>
+    <div class="page-row">
+      <div class="page-icon">❤️</div>
+      <div class="page-info">
+        <div class="page-name">/liked-videos — Liked Videos</div>
+        <div class="page-desc">Paginated list of all videos the user has liked. From Like model getPaginatedLikedVideos.</div>
+        <div class="page-badges"><span class="badge badge-amber">Auth Required</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: API Reference -->
+  <div id="tab-apis" class="panel">
+    <div class="section-title">API Endpoints</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <div class="auth-chip"><div class="auth-dot" style="background:#3B6D11;"></div> Open</div>
+      <div class="auth-chip"><div class="auth-dot" style="background:#854F0B;"></div> Optional Auth</div>
+      <div class="auth-chip"><div class="auth-dot" style="background:#A32D2D;"></div> JWT Required</div>
+    </div>
+
+    <div class="sub-title">Auth / Users — /api/v1/users</div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/send-otp</div><div class="endpoint-desc">Send OTP to email for registration. Body: {email, fullName}</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/verify-otp</div><div class="endpoint-desc">Verify OTP code. Body: {email, otp}. Returns verified=true</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/register</div><div class="endpoint-desc">Multipart: username, email, fullname, password + avatar file + coverImage file</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/login</div><div class="endpoint-desc">Body: {email, password} → sets httpOnly cookies: accessToken, refreshToken</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/auth/google</div><div class="endpoint-desc">Redirect to Google OAuth login page</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/logout <span style="font-family:var(--font-sans);font-size:10px;color:#A32D2D;">🔒 JWT</span></span></div><div class="endpoint-desc">Clear auth cookies</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/current-user</div><div class="endpoint-desc">Optional auth — returns user or null for guests</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/channel/:username</div><div class="endpoint-desc">Channel profile: subscribersCount, isSubscribed, channelsSubscribedToCount</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/forgot-password</div><div class="endpoint-desc">Send OTP for password reset. Body: {email}</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/reset-password</div><div class="endpoint-desc">Body: {email, otp, newPassword}</div></div></div>
+    <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/update-account 🔒</div><div class="endpoint-desc">Body: {fullname, email}</div></div></div>
+    <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/avatar 🔒</div><div class="endpoint-desc">Multipart single file: avatar</div></div></div>
+    <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/cover-image 🔒</div><div class="endpoint-desc">Multipart single file: coverImage</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/watch-history 🔒</div><div class="endpoint-desc">Returns array of watched videos with owner info</div></div></div>
+
+    <div class="sub-title">Videos — /api/v1/videos</div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/get-all-videos</div><div class="endpoint-desc">Query: page, limit, query, sortBy, sortType, userId, category. Paginated.</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/get-all-shorts</div><div class="endpoint-desc">isShort=true videos. Paginated vertical feed.</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/get-video/:videoId</div><div class="endpoint-desc">Full video details with owner. Increments view count.</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/user-videos/:username</div><div class="endpoint-desc">All published videos by a channel username</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/studio-videos 🔒</div><div class="endpoint-desc">All videos by current user (including unpublished)</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/subscriptions-feed 🔒</div><div class="endpoint-desc">Videos from subscribed channels, recent first</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/upload-video 🔒</div><div class="endpoint-desc">Multipart: title, description, category, isShort + videoFile + thumbnail</div></div></div>
+    <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/update-video/:videoId 🔒</div><div class="endpoint-desc">Update title, description, thumbnail. Owner only.</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/is-published/:videoId 🔒</div><div class="endpoint-desc">Toggle publish status. Returns {isPublished}</div></div></div>
+    <div class="endpoint"><span class="method delete">DEL</span><div><div class="endpoint-path">/delete-video/:videoId 🔒</div><div class="endpoint-desc">Delete video + thumbnail from Cloudinary. Owner only.</div></div></div>
+
+    <div class="sub-title">Interactions</div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/v1/likes/toggle/video/:videoId 🔒</div><div class="endpoint-desc">Toggle like on video. Returns {isLiked, likesCount}</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/v1/likes/toggle/tweet/:tweetId 🔒</div><div class="endpoint-desc">Toggle like on tweet/community post</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/likes/videos 🔒</div><div class="endpoint-desc">Paginated liked videos. Query: page, limit</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/v1/subscriptions/c/:channelId/toggle 🔒</div><div class="endpoint-desc">Subscribe/unsubscribe. Cannot subscribe to own channel. Returns {isSubscribed, subscribersCount}</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/comments/:videoId</div><div class="endpoint-desc">Paginated comments for video. Query: page, limit</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/v1/comments/:videoId 🔒</div><div class="endpoint-desc">Add comment. Body: {content}</div></div></div>
+
+    <div class="sub-title">Watch Progress — /api/v1/watch-progress</div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/save 🔒</div><div class="endpoint-desc">Body: {videoId, currentTime, duration}. Upsert — saves latest position.</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/:videoId 🔒</div><div class="endpoint-desc">Get saved progress for a video (for resume feature)</div></div></div>
+
+    <div class="sub-title">Recommendations — /api/v1/recommendations</div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/videos</div><div class="endpoint-desc">Returns personalized videos based on category+channel interest scores. Falls back to trending for guests.</div></div></div>
+
+    <div class="sub-title">Notifications — /api/v1/notifications</div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/ 🔒</div><div class="endpoint-desc">All notifications for current user. Types: new_video, new_tweet</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/unread-count 🔒</div><div class="endpoint-desc">Returns {count} — use for bell badge</div></div></div>
+    <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/mark-all-read 🔒</div><div class="endpoint-desc">Mark all notifications as read</div></div></div>
+
+    <div class="sub-title">Watch Later — /api/v1/watch-later</div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/toggle/:videoId 🔒</div><div class="endpoint-desc">Add or remove from watch later. Unique per user+video.</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/ 🔒</div><div class="endpoint-desc">Paginated watch later list with full video details</div></div></div>
+
+    <div class="sub-title">Search — /api/v1/search</div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/query?q=term</div><div class="endpoint-desc">Search videos, channels, shorts by keyword</div></div></div>
+
+    <div class="sub-title">Playlists — /api/v1/playlists</div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/ 🔒</div><div class="endpoint-desc">Create playlist. Body: {name, description}</div></div></div>
+    <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/:playlistId/add/:videoId 🔒</div><div class="endpoint-desc">Add video to playlist</div></div></div>
+    <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/:playlistId/remove/:videoId 🔒</div><div class="endpoint-desc">Remove video from playlist</div></div></div>
+  </div>
+
+  <!-- TAB 4: Key Logic -->
+  <div id="tab-logic" class="panel">
+    <div class="section-title">Critical Frontend Logic</div>
+
+    <div class="sub-title">1. Authentication Flow</div>
+    <div class="logic-item" style="border-color:#3EA6FF;">
+      <div class="logic-title">Token Storage — httpOnly Cookies Only</div>
+      <div class="logic-desc">Backend sets accessToken and refreshToken as httpOnly cookies. Frontend NEVER reads these directly. On page load, call GET /current-user (withCredentials: true). If 401 → auto-call POST /refresh-token → retry. Configure Axios interceptor for this.</div>
+    </div>
+    <div class="logic-item" style="border-color:#3EA6FF;">
+      <div class="logic-title">Google OAuth Redirect Handling</div>
+      <div class="logic-desc">When landing on /?login=success, call /current-user to hydrate user state. The backend already set cookies — frontend just needs to pick up the user object.</div>
+    </div>
+    <div class="logic-item" style="border-color:#FF4444;">
+      <div class="logic-title">Registration — 3-Step OTP Flow</div>
+      <div class="logic-desc">Step 1: POST /send-otp. Store email in state. Step 2: POST /verify-otp with 6-digit code (auto-submit on 6th digit). OTP has 10 min expiry — show countdown timer. Resend button with 60s cooldown. Step 3: POST /register with all fields including avatar multipart.</div>
+    </div>
+
+    <div class="sub-title">2. Video Player Logic</div>
+    <div class="logic-item" style="border-color:#FF0000;">
+      <div class="logic-title">Watch Progress Tracking (Critical)</div>
+      <div class="logic-desc">Save progress every 5 seconds via setInterval. POST /watch-progress/save with {videoId, currentTime, duration}. On mount, GET /watch-progress/:videoId and seek player to savedTime if > 10s. At 90% completion, mark isCompleted=true (triggers interest score: +10 "complete" vs +5 "watch").</div>
+    </div>
+    <div class="logic-item" style="border-color:#FF0000;">
+      <div class="logic-title">Interest Engine Triggers</div>
+      <div class="logic-desc">Call updateUserInterests (via backend) for: watch (+5), complete (+10), like (+8), comment (+6), subscribe (+12). This happens automatically via the backend when you call like/comment/subscribe APIs — but ensure you call these APIs, not just update UI optimistically.</div>
+    </div>
+    <div class="logic-item" style="border-color:#FF0000;">
+      <div class="logic-title">Watch History</div>
+      <div class="logic-desc">Automatically tracked server-side when video is fetched. No separate call needed. GET /users/watch-history returns populated video objects.</div>
+    </div>
+    <div class="logic-item" style="border-color:#854F0B;">
+      <div class="logic-title">Slug-based vs ID-based Navigation</div>
+      <div class="logic-desc">Videos have both _id and slug. Use slug in URLs (/watch/my-video-slug) for SEO. Fetch by videoId which accepts both. The slug is auto-generated from title via slugify on upload.</div>
+    </div>
+
+    <div class="sub-title">3. Subscribe Button</div>
+    <div class="logic-item" style="border-color:#FF0000;">
+      <div class="logic-title">Optimistic Update + Anti-Self-Subscribe</div>
+      <div class="logic-desc">Toggle immediately in UI, then POST to API. Backend rejects if channelId === own userId (400 error) — hide subscribe button on own channel. Show subscriber count from API response. isSubscribed state comes from channel profile endpoint.</div>
+    </div>
+
+    <div class="sub-title">4. Shorts Feed</div>
+    <div class="logic-item" style="border-color:#9333EA;">
+      <div class="logic-title">Vertical Snap Scroll + Intersection Observer</div>
+      <div class="logic-desc">Use IntersectionObserver to detect which short is in view. Autoplay video when fully visible (threshold: 0.9). Pause others. Each short is 100vh. Use scroll-snap-type: y mandatory on container. Preload next short.</div>
+    </div>
+
+    <div class="sub-title">5. Recommendation Feed</div>
+    <div class="logic-item" style="border-color:#3EA6FF;">
+      <div class="logic-title">Personalized vs Guest Feed</div>
+      <div class="logic-desc">For authenticated users: GET /recommendations/videos. For guests: GET /videos/get-all-videos?sortBy=views&sortType=desc. The backend recommendation engine uses categoryScores and channelScores — no frontend logic needed, just call the right endpoint.</div>
+    </div>
+
+    <div class="sub-title">6. Like System</div>
+    <div class="logic-item" style="border-color:#FF4444;">
+      <div class="logic-title">Optimistic Updates on Likes</div>
+      <div class="logic-desc">Toggle like button state immediately. POST /likes/toggle/video/:videoId. Update likesCount from response. If unauthenticated, redirect to /login. Likes work on: videos, comments, tweets. Check current like state from video/comment data (isLiked field).</div>
+    </div>
+
+    <div class="sub-title">7. Notifications Bell</div>
+    <div class="logic-item" style="border-color:#854F0B;">
+      <div class="logic-title">Polling for Unread Count</div>
+      <div class="logic-desc">Poll GET /notifications/unread-count every 60 seconds when user is authenticated. Show badge count on bell icon. On click: fetch all notifications and PATCH /notifications/mark-all-read. Types shown: new_video (show thumbnail), new_tweet (show text preview).</div>
+    </div>
+
+    <div class="sub-title">8. Search</div>
+    <div class="logic-item" style="border-color:#3EA6FF;">
+      <div class="logic-title">Debounced Search with URL Sync</div>
+      <div class="logic-desc">Debounce input 300ms. Update URL query param ?q= for shareable results. GET /search/query?q=. Show results grouped: Videos, Channels (users), Shorts. Navigate to /search?q=term on enter or suggestion click.</div>
+    </div>
+
+    <div class="sub-title">9. Upload Flow</div>
+    <div class="logic-item" style="border-color:#FF0000;">
+      <div class="logic-title">Video Upload with Progress</div>
+      <div class="logic-desc">POST /videos/upload-video as FormData. Show upload progress via onUploadProgress (Axios). Fields: title (required), description (required), category, isShort toggle, videoFile, thumbnail. After success: redirect to /watch/:videoId. Notifications auto-sent to subscribers by backend.</div>
+    </div>
+  </div>
+
+  <!-- TAB 5: Components -->
+  <div id="tab-components" class="panel">
+    <div class="section-title">Component Architecture</div>
+
+    <div class="sub-title">Layout Components</div>
+    <div class="card">
+      <div class="card-title">Navbar</div>
+      <div class="card-desc">Logo left. Search bar center (with debounce). Right: Notification bell (with unread badge), Upload button, Avatar/Login button. Hamburger for mobile sidebar toggle.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sidebar</div>
+      <div class="card-desc">Collapsible. Routes: Home, Shorts, Subscriptions, Watch Later, History, Liked Videos, Playlists. Auth-gated routes show login prompt. Creator section: Studio, Community.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">CategoryChips</div>
+      <div class="card-desc">Horizontal scrollable filter row below navbar. Fetched from /categories API. "All" chip first. Selected chip highlighted red. On click, filter home feed.</div>
+    </div>
+
+    <div class="sub-title">Video Components</div>
+    <div class="grid2">
+      <div class="card-sm">
+        <div class="card-title">VideoCard</div>
+        <div class="card-desc">Thumbnail (16:9), title (2 lines max), channel avatar+name, views, timestamp, duration badge. Hover: show progress bar if watched. Bookmark icon for watch later.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">VideoPlayer</div>
+        <div class="card-desc">React Player wrapper. Custom controls: play/pause, volume, fullscreen, quality selector, seek bar. Progress tracking interval. Resume from saved position.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">ShortCard</div>
+        <div class="card-desc">Full-height (100vh). Vertical video. Like button, share button. Channel name + subscribe overlay. Uses autoplay when in viewport via IntersectionObserver.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">CommentSection</div>
+        <div class="card-desc">Comment count header. Input box (auth required). Paginated comments with like toggle. Owner can edit/delete own comments. Sorted by newest.</div>
+      </div>
+    </div>
+
+    <div class="sub-title">Shared Components</div>
+    <div class="grid2">
+      <div class="card-sm">
+        <div class="card-title">SubscribeButton</div>
+        <div class="card-desc">Red "Subscribe" / Gray "Subscribed" with checkmark. Handles own-channel hide. Shows subscriber count. Optimistic toggle.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">LikeButton</div>
+        <div class="card-desc">Thumbs up icon. Active = red fill. Shows count. Works on videos, tweets, comments. Redirects to login if guest.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">OTPInput</div>
+        <div class="card-desc">6 individual digit boxes. Auto-focus next on input. Auto-submit on 6th digit. Resend with 60s countdown timer. Clear on error.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">AvatarUpload</div>
+        <div class="card-desc">Circle preview. Drag-drop or click to select. Shows preview before upload. Used in register and settings.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">InfiniteScroll</div>
+        <div class="card-desc">IntersectionObserver on sentinel div. Triggers next page fetch. Works for videos, notifications, comments, playlists.</div>
+      </div>
+      <div class="card-sm">
+        <div class="card-title">NotificationItem</div>
+        <div class="card-desc">New video: thumbnail + channel avatar + "uploaded a video". New tweet: text preview. Unread = highlighted bg. Timestamp relative.</div>
+      </div>
+    </div>
+
+    <div class="sub-title">State Management (Zustand Stores)</div>
+    <div class="card-sm"><div class="card-title">authStore</div><div class="card-desc">user, isAuthenticated, login(), logout(), fetchCurrentUser(). Hydrated on app mount via /current-user.</div></div>
+    <div class="card-sm"><div class="card-title">playerStore</div><div class="card-desc">currentVideo, isPlaying, volume, watchProgress. Syncs with backend every 5s.</div></div>
+    <div class="card-sm"><div class="card-title">notificationStore</div><div class="card-desc">notifications[], unreadCount. Polled every 60s.</div></div>
+    <div class="card-sm"><div class="card-title">uiStore</div><div class="card-desc">sidebarOpen, theme (dark/light), searchQuery.</div></div>
+  </div>
+
+  <!-- TAB 6: Cursor Guide -->
+  <div id="tab-cursor" class="panel">
+    <div class="section-title">Cursor AI Implementation Guide</div>
+    <div class="important">
+      <div class="important-text">Use this as your prompt guide in Cursor. Start with project scaffold, then build page by page. Always reference the API Base URL from .env: VITE_API_BASE_URL=http://localhost:8000/api/v1</div>
+    </div>
+
+    <div class="sub-title">Project Setup Prompt</div>
+    <div class="card-sm" style="font-family:var(--font-mono);font-size:12px;line-height:1.7;color:var(--color-text-primary);">
+      Create a React + Vite project with: React Router v6, TanStack Query, Zustand, Tailwind CSS, Axios with withCredentials:true base config, React Player. Dark/light theme via CSS variables. Tailwind config with YouTube-inspired colors: primary=#FF0000, dark-bg=#0F0F0F, surface=#212121.
+    </div>
+
+    <div class="sub-title">Axios Config Prompt</div>
+    <div class="card-sm" style="font-family:var(--font-mono);font-size:12px;line-height:1.7;color:var(--color-text-primary);">
+      Create axios instance with baseURL from env, withCredentials:true. Add request interceptor. Add response interceptor: on 401 → call /refresh-token → retry original request. On refresh fail → logout user and redirect /login.
+    </div>
+
+    <div class="sub-title">Auth Store Prompt</div>
+    <div class="card-sm" style="font-family:var(--font-mono);font-size:12px;line-height:1.7;color:var(--color-text-primary);">
+      Zustand auth store: user state, isAuthenticated. fetchCurrentUser calls GET /users/current-user (optional auth endpoint). Login/logout functions. Persist to sessionStorage. Add ProtectedRoute component that redirects to /login if not authenticated.
+    </div>
+
+    <div class="sub-title">Page-by-Page Build Order</div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">1</div>
+      <div class="page-info"><div class="page-name">Navbar + Sidebar + Layout shell</div><div class="page-desc">Routing, dark mode, auth state display</div></div>
+    </div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">2</div>
+      <div class="page-info"><div class="page-name">Register + Login + Forgot Password</div><div class="page-desc">OTP flow, Google OAuth button, form validation</div></div>
+    </div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">3</div>
+      <div class="page-info"><div class="page-name">Home Feed + VideoCard + Category Chips</div><div class="page-desc">Infinite scroll, category filtering</div></div>
+    </div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">4</div>
+      <div class="page-info"><div class="page-name">Video Player Page</div><div class="page-desc">Progress tracking, like, subscribe, comments, watch later</div></div>
+    </div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">5</div>
+      <div class="page-info"><div class="page-name">Channel Page + Subscribe Flow</div><div class="page-desc">Profile, subscriber count, video/playlist/community tabs</div></div>
+    </div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">6</div>
+      <div class="page-info"><div class="page-name">Shorts Feed</div><div class="page-desc">Vertical snap scroll, autoplay, IntersectionObserver</div></div>
+    </div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">7</div>
+      <div class="page-info"><div class="page-name">Creator Studio + Upload</div><div class="page-desc">Video table, publish toggle, upload form with progress</div></div>
+    </div>
+    <div class="page-row" style="padding:8px 0;">
+      <div style="width:24px;height:24px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;flex-shrink:0;">8</div>
+      <div class="page-info"><div class="page-name">Remaining pages</div><div class="page-desc">Search, Notifications, Watch Later, History, Playlists, Settings, Community</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
