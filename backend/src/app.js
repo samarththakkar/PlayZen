@@ -38,8 +38,10 @@ import recommendationRouter from "./routes/recommendation.routes.js";
 import searchRouter from "./routes/search.routes.js";
 import watchHistoryRouter from "./routes/watchHistory.routes.js";
 import watchLaterRouter from "./routes/watchLater.routes.js";
+import healthcheckRouter from "./routes/healthcheck.routes.js";
 
 // API Routes
+app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/playlists", playlistRouter);
