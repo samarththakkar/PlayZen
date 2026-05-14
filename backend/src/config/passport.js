@@ -25,6 +25,30 @@ passport.use(new GoogleStrategy({
                 coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop", // A nice default abstract gradient
                 isEmailVerified: true
             });
+        } else {
+            // Sync Google data for existing users
+            let needsSave = false;
+
+            if (!user.googleId) {
+                user.googleId = profile.id;
+                needsSave = true;
+            }
+            if (!user.avatar && profile.photos[0]?.value) {
+                user.avatar = profile.photos[0].value;
+                needsSave = true;
+            }
+            if (user.provider === 'local') {
+                user.provider = 'google';
+                needsSave = true;
+            }
+            if (!user.isEmailVerified) {
+                user.isEmailVerified = true;
+                needsSave = true;
+            }
+
+            if (needsSave) {
+                await user.save({ validateBeforeSave: false });
+            }
         }
 
         return done(null, user);

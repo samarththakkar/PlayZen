@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getCookieOptions } from "../utils/cookieOptions.js";
 import passport from "../config/passport.js";
 import {
     changeCurrentPassword,
@@ -50,7 +51,7 @@ router.route("/auth/google/callback").get(
     passport.authenticate('google', { session: false }),
     async (req, res) => {
         const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(req.user._id);
-        const options = { httpOnly: true, secure: process.env.NODE_ENV === "production" };
+        const options = getCookieOptions();
 
         res.cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)

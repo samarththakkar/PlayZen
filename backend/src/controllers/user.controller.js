@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
+import { getCookieOptions } from "../utils/cookieOptions.js"
 import { Video } from "../models/video.model.js";
 import { sendOTP } from "../utils/brevoOtp.js";
 
@@ -246,10 +247,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production"
-    }
+    const options = getCookieOptions()
 
     return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
         new ApiResponse(200,
@@ -271,10 +269,7 @@ const logoutUser = asyncHandler(async (req, res) => {
             }
         }, { new: true }
     )
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production"
-    }
+    const options = getCookieOptions()
     return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options).json(new ApiResponse(200, {}, "User Logged Out"))
 })
 
@@ -295,10 +290,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         if (incomingRefreshToken !== user?.refreshToken) {
             throw new ApiError(401, "refresh token is expired or used")
         }
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production"
-        }
+        const options = getCookieOptions()
         const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id)
 
         return res

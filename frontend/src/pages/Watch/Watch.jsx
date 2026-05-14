@@ -19,10 +19,16 @@ import { useAuth } from '../../hooks/useAuth';
 const Watch = () => {
   const { videoId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const [similarVideos, setSimilarVideos] = useState([]);
 

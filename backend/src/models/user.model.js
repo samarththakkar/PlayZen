@@ -45,10 +45,11 @@ const userSchema = new Schema(
             index: true,
         },
         avatar: {
-            type: String, // cloudinary url
+            type: String, // cloudinary url or Google profile photo
         },
         coverImage: {
             type: String,
+            default: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop",
         },
         watchHistory: [
             {
@@ -79,7 +80,7 @@ const userSchema = new Schema(
             type: String,
             sparse: true
         },
-
+    
         provider: {
             type: String,
             enum: ['google', 'local'],
