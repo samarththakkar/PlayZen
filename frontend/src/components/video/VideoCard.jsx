@@ -166,7 +166,7 @@ const VideoCard = ({ video }) => {
           <p className="video-channel" onClick={handleChannelClick}>
             {channelName}
             {video.verified && (
-              <CheckCircle size={12} color="#818CF8" strokeWidth={2.5} />
+              <CheckCircle size={12} color="#ff5555" strokeWidth={2.5} />
             )}
           </p>
           <p className="video-meta">

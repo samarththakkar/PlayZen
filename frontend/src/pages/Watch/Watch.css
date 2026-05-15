@@ -120,17 +120,19 @@
 }
 
 .watch-subscribe-btn {
-    background-color: var(--text-primary);
-    color: var(--bg-color);
+    background-color: #ff5555;
+    color: #ffffff;
     border-radius: 20px;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.25rem;
     font-weight: 600;
     font-size: 0.9rem;
     margin-left: 1rem;
+    transition: all 0.2s ease;
 }
 
 .watch-subscribe-btn:hover {
-    background-color: var(--text-muted);
+    background-color: #e53935;
+    transform: translateY(-1px);
 }
 
 /* Actions */

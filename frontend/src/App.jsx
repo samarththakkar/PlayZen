@@ -33,12 +33,12 @@ const NotFound = () => (
     alignItems: 'center',
     justifyContent: 'center',
     gap: '16px',
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Roboto', sans-serif",
   }}>
     <div style={{
       fontSize: '80px', fontWeight: 700,
-      fontFamily: "'Syne', sans-serif",
-      background: 'linear-gradient(135deg, #6366F1, #818CF8)',
+      fontFamily: "'Roboto', sans-serif",
+      background: 'linear-gradient(135deg, #ff5555, #ff8888)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       lineHeight: 1,
@@ -53,14 +53,14 @@ const NotFound = () => (
     </div>
     <Link to="/" style={{
       padding: '10px 24px',
-      background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-      border: '1px solid rgba(99,102,241,0.4)',
+      background: 'linear-gradient(135deg, #ff5555, #e53935)',
+      border: '1px solid rgba(255,85,85,0.4)',
       borderRadius: '50px',
       color: '#fff',
       textDecoration: 'none',
       fontSize: '13px',
       fontWeight: 600,
-      boxShadow: '0 4px 20px rgba(99,102,241,0.35)',
+      boxShadow: '0 4px 20px rgba(255,85,85,0.35)',
       transition: 'all 0.2s',
     }}>
       ← Back to Home

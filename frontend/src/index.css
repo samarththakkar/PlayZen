@@ -6,10 +6,10 @@
   --bg-elevated:    #222222;   /* hover states, pills, dropdowns */
   --bg-overlay:     #252525;   /* modals, tooltips */
 
-  /* ── RED ACCENT (YouTube-like minimal red) ── */
-  --primary:        #ff3d3d;
-  --primary-light:  #ff6b6b;
-  --primary-dark:   #cc0000;
+  /* ── RED ACCENT (Softer Red) ── */
+  --primary:        #ff5555;
+  --primary-light:  #ff7777;
+  --primary-dark:   #e53935;
 
   /* ── GLASS (Neutral, no heavy glows) ── */
   --glass:          rgba(255, 255, 255, 0.03);
@@ -46,7 +46,7 @@
   --card-border:    transparent;
   --card-hover-bg:  #222222;
   --card-hover-border: transparent;
-  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 
   /* ── BUTTONS ── */
   --btn-primary-bg:     #ff3d3d;
@@ -73,7 +73,7 @@
   --accent-hover: var(--primary-light);
   --border-color: var(--divider);
 
-  font-family: 'Plus Jakarta Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   line-height: 1.5;
   font-weight: 500;
   font-size: 16px;
@@ -140,7 +140,7 @@ button {
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 600;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Roboto', sans-serif;
   background-color: var(--surface-color);
   color: var(--text-primary);
   cursor: pointer;

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Search, AlertCircle, RefreshCw, CheckCircle2, Dot } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import axios from 'axios';
+import api from '../../services/api';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import VideoCard from '../../components/video/VideoCard';
 import { VideoGridSkeleton } from '../../components/ui/Skeleton';
@@ -25,7 +25,7 @@ const Subscriptions = () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.get('/api/v1/videos/subscriptions-feed');
+      const { data } = await api.get('/videos/subscriptions-feed');
       const payload  = data?.data || {};
       setVideos(payload.docs      || []);
       setChannels(payload.channels || []);
@@ -181,7 +181,7 @@ const Subscriptions = () => {
 
           ) : displayedVideos.length === 0 ? (
             <div className="subs-state-card">
-              <CheckCircle2 size={26} style={{ color: '#818CF8' }} />
+              <CheckCircle2 size={26} style={{ color: '#ff5555' }} />
               <h2 className="subs-state-title">All caught up!</h2>
               <p className="subs-state-text">
                 No videos from this channel yet.

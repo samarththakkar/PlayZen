@@ -6,7 +6,7 @@
  * @returns {string} - A 6-character hex color code (without the #)
  */
 const stringToColor = (str) => {
-    if (!str) return '6366f1'; // Default Indigo
+    if (!str) return 'ff5555'; // Default Softer Red
 
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

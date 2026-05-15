@@ -83,7 +83,7 @@
     justify-content: center;
     font-size: 3rem;
     font-weight: 800;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Roboto', sans-serif;
     color: #ffffff !important;
     background: linear-gradient(135deg, var(--border-color) 0%, var(--surface-color) 100%) !important;
 }
@@ -94,7 +94,7 @@
 }
 
 .profile-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 2rem;
     font-weight: 700;
     margin: 0 0 0.25rem 0;
@@ -129,7 +129,7 @@
 .profile-btn {
     padding: 0.7rem 1.5rem;
     border-radius: 30px;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -138,14 +138,15 @@
 }
 
 .profile-btn-subscribe {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    color: var(--bg-color) !important;
+    background: #ff5555 !important;
+    background-color: #ff5555 !important;
+    color: #ffffff !important;
 }
 
 .profile-btn-subscribe:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+    background-color: #e53935 !important;
+    box-shadow: 0 4px 15px rgba(255, 85, 85, 0.4);
 }
 
 .profile-btn-edit {
@@ -185,7 +186,7 @@
     transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 .profile-tab:hover {
@@ -193,8 +194,8 @@
 }
 
 .profile-tab.active {
-    color: #ffffff !important;
-    border-bottom-color: #ffffff;
+    color: #ff5555 !important;
+    border-bottom-color: #ff5555;
 }
 
 /* 4. Content Area */

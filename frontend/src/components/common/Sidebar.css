@@ -62,7 +62,7 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     white-space: nowrap;
     overflow: hidden;
     transition: opacity 0.2s, height 0.3s;
@@ -106,7 +106,7 @@
 .sidebar-link.active {
     background-color: #4d4c4c;
     border-radius: 50px;
-    border-left: 5px solid #6366F1;
+    border-left: 5px solid #ff5555;
     color: #ffffff;
     font-weight: 500;
 }
@@ -133,7 +133,7 @@
     overflow: hidden;
     opacity: 1;
     transition: opacity 0.2s ease;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 /* ==========================================================================
@@ -172,7 +172,7 @@
     transform: translateY(-50%);
     background: rgba(18, 18, 28, 0.97);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(255, 85, 85, 0.2);
     border-radius: 9px;
     padding: 6px 12px;
     font-size: 12.5px;
@@ -212,7 +212,7 @@
     .global-sidebar.mobile-open {
         transform: translateX(0);
         box-shadow: 8px 0 48px rgba(0, 0, 0, 0.6),
-                    1px 0 0 rgba(99, 102, 241, 0.12);
+                    1px 0 0 rgba(255, 85, 85, 0.12);
     }
 
     /* Backdrop overlay behind mobile sidebar */
@@ -246,7 +246,7 @@
     text-decoration: none;
     color: rgba(255, 255, 255, 0.65);
     font-size: 13.5px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 400;
 }
 .sidebar-channel-item:hover {
@@ -278,9 +278,9 @@
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: #6366F1;
+    background: #ff5555;
     border: 2px solid #080810;
-    box-shadow: 0 0 6px rgba(99, 102, 241, 0.8);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 /* Channel name — truncate */
@@ -304,7 +304,7 @@
     cursor: pointer;
     color: rgba(255, 255, 255, 0.45);
     font-size: 13px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 500;
     transition: all 0.18s ease;
     margin-top: 2px;
@@ -330,7 +330,7 @@
     top: 50%;
     transform: translateY(-50%);
     background: rgba(18, 18, 28, 0.95);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(255, 85, 85, 0.2);
     color: #fff;
     font-size: 12px;
     font-weight: 500;

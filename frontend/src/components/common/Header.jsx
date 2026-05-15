@@ -272,6 +272,8 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
                   src={displayAvatar} 
                   alt="User Avatar" 
                   className="header-avatar-img"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.fullname || currentUser.username || 'U')}&background=ff4444&color=fff&length=1`; }}
                 />
             </button>
           ) : (
@@ -289,7 +291,13 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
             <div className="dropdown-menu profile-dropdown">
               <div className="dropdown-header profile-header">
                 <div className="profile-avatar-gradient">
-                  <img src={displayAvatar} alt="Profile" className="dropdown-large-avatar" />
+                  <img 
+                    src={displayAvatar} 
+                    alt="Profile" 
+                    className="dropdown-large-avatar"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.fullname || currentUser.username || 'U')}&background=ff4444&color=fff&length=1`; }}
+                  />
                 </div>
                 <div className="dropdown-header-info">
                   <span className="dropdown-name">{currentUser.fullname || currentUser.username || "User"}</span>

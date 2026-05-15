@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import VideoCard from '../components/video/VideoCard';
 import Skeleton from '../components/ui/Skeleton';
 import { getTrending } from '../services/search.service';
@@ -35,13 +35,13 @@ const Search = () => {
       }
 
       try {
-        const response = await axios.get(`/api/v1/videos/get-all-videos?query=${encodeURIComponent(query)}`);
+        const response = await api.get(`/videos/get-all-videos?query=${encodeURIComponent(query)}`);
         const fetchedVideos = response.data?.data?.docs || response.data?.docs || [];
         setVideos(fetchedVideos);
 
         // If no videos were found for the query, fetch generic suggestions instead
         if (fetchedVideos.length === 0) {
-            const suggestionResponse = await axios.get('/api/v1/videos/get-all-videos?limit=8');
+            const suggestionResponse = await api.get('/videos/get-all-videos?limit=8');
             const placeholderVideos = suggestionResponse.data?.data?.docs || suggestionResponse.data?.docs || [];
             setSuggestedVideos(placeholderVideos);
         }

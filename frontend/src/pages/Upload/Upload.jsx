@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {
@@ -138,8 +138,10 @@ const Upload = () => {
       Object.entries(formData).forEach(([k, v]) => data.append(k, v));
       data.append('videoFile',  videoFile);
       data.append('thumbnail',  thumbnailFile);
-      await axios.post('/api/v1/videos/upload-video', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const response = await api.post('/videos/upload-video', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
         onUploadProgress: (e) =>
           setUploadProgress(Math.round((e.loaded * 100) / e.total)),
       });

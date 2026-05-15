@@ -51,7 +51,7 @@
 }
 
 .subs-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 21px;
     font-weight: 700;
     color: #ffffff;
@@ -63,7 +63,7 @@
     font-size: 12.5px;
     color: rgba(255, 255, 255, 0.35);
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 .subs-header-actions {
@@ -97,7 +97,7 @@
     border-radius: 9px;
     color: #eeeef4;
     font-size: 13px; font-weight: 500;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -157,7 +157,7 @@
     text-align: left;
     color: rgba(255, 255, 255, 0.6);
     font-size: 13px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 400;
     transition: background 0.15s ease, color 0.15s ease;
     overflow: hidden;
@@ -180,18 +180,18 @@
     left: 0; top: 20%; bottom: 20%;
     width: 3px;
     border-radius: 0 3px 3px 0;
-    background: linear-gradient(180deg, #818CF8, #6366F1);
-    box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+    background: linear-gradient(180deg, #ff5555, #e53935);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
 }
 
 /* "All" icon */
 .subs-ch-all-icon {
     width: 28px; height: 28px;
     border-radius: 50%;
-    background: rgba(99, 102, 241, 0.15);
-    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: rgba(255, 85, 85, 0.15);
+    border: 1px solid rgba(255, 85, 85, 0.25);
     display: flex; align-items: center; justify-content: center;
-    color: #818CF8;
+    color: #ff5555;
     flex-shrink: 0;
 }
 
@@ -215,9 +215,9 @@
     bottom: -1px; right: -2px;
     width: 9px; height: 9px;
     border-radius: 50%;
-    background: #6366F1;
+    background: #ff5555;
     border: 2px solid #080810;
-    box-shadow: 0 0 6px rgba(99, 102, 241, 0.8);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 .subs-ch-label {
@@ -238,7 +238,7 @@
     cursor: pointer;
     color: rgba(255, 255, 255, 0.38);
     font-size: 12.5px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     text-align: left;
     transition: all 0.15s;
     margin-top: 2px;
@@ -264,7 +264,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 16px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.88);
@@ -274,8 +274,8 @@
 .subs-section-dot {
     width: 7px; height: 7px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6366F1, #818CF8);
-    box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+    background: linear-gradient(135deg, #ff5555, #ff8888);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
     flex-shrink: 0;
 }
 
@@ -310,7 +310,7 @@
     position: absolute;
     width: 280px; height: 280px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.07) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 85, 85, 0.07) 0%, transparent 70%);
     filter: blur(40px);
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -320,16 +320,16 @@
 .subs-empty-icon {
     width: 60px; height: 60px;
     border-radius: 16px;
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(255, 85, 85, 0.1);
+    border: 1px solid rgba(255, 85, 85, 0.2);
     display: flex; align-items: center; justify-content: center;
-    color: rgba(99, 102, 241, 0.6);
+    color: rgba(255, 85, 85, 0.6);
     margin-bottom: 4px;
     position: relative; z-index: 1;
 }
 
 .subs-empty-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 17px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.85);
@@ -343,28 +343,28 @@
     margin: 0;
     max-width: 340px;
     line-height: 1.65;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     position: relative; z-index: 1;
 }
 
 .subs-explore-btn {
     display: flex; align-items: center; gap: 8px;
     padding: 9px 20px;
-    background: linear-gradient(135deg, #6366F1, #4F46E5);
-    border: 1px solid rgba(99, 102, 241, 0.4);
+    background: linear-gradient(135deg, #ff5555, #e53935);
+    border: 1px solid rgba(255, 85, 85, 0.4);
     border-radius: 50px;
     color: #fff;
     font-size: 13px; font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     cursor: pointer;
     transition: all 0.22s ease;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
     margin-top: 4px;
     position: relative; z-index: 1;
 }
 .subs-explore-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 26px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
 }
 .subs-explore-btn:active { transform: translateY(0); }
 
@@ -383,7 +383,7 @@
 }
 
 .subs-state-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 17px;
     color: rgba(255, 255, 255, 0.9);
     margin: 0;

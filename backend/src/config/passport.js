@@ -33,7 +33,8 @@ passport.use(new GoogleStrategy({
                 user.googleId = profile.id;
                 needsSave = true;
             }
-            if (!user.avatar && profile.photos[0]?.value) {
+            // Always sync the real Google photo for Google users
+            if (profile.photos[0]?.value) {
                 user.avatar = profile.photos[0].value;
                 needsSave = true;
             }

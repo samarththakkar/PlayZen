@@ -50,7 +50,7 @@
 }
 
 .liked-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 22px;
     font-weight: 700;
     color: #ffffff;
@@ -62,7 +62,7 @@
     font-size: 13px;
     color: rgba(255, 255, 255, 0.38);
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 /* ── LIKED GRID ── */
@@ -84,8 +84,8 @@
     overflow: hidden;
 }
 .liked-card:hover {
-    background: rgba(99, 102, 241, 0.06);
-    border-color: rgba(99, 102, 241, 0.18);
+    background: rgba(255, 85, 85, 0.06);
+    border-color: rgba(255, 85, 85, 0.18);
     transform: translateY(-3px);
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
@@ -132,7 +132,7 @@
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: 'Inter', monospace;
+    font-family: 'Roboto', monospace;
 }
 
 /* Card info */
@@ -144,7 +144,7 @@
 }
 
 .liked-card-title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: #ffffff;
@@ -161,7 +161,7 @@
     font-size: 13px;
     color: rgba(255, 255, 255, 0.45);
     margin: 2px 0 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 .liked-card-meta {
@@ -170,7 +170,7 @@
     gap: 6px;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.32);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     margin-top: 2px;
 }
 .liked-card-meta .meta-dot { font-size: 10px; }
@@ -222,7 +222,7 @@
     width: 300px;
     height: 300px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.07) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 85, 85, 0.07) 0%, transparent 70%);
     filter: blur(40px);
     pointer-events: none;
     top: 50%;
@@ -234,19 +234,19 @@
     width: 64px;
     height: 64px;
     border-radius: 18px;
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(255, 85, 85, 0.1);
+    border: 1px solid rgba(255, 85, 85, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(99, 102, 241, 0.6);
+    color: rgba(255, 85, 85, 0.6);
     margin-bottom: 6px;
     position: relative;
     z-index: 1;
 }
 
 .liked-empty-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 18px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.85);
@@ -261,7 +261,7 @@
     margin: 0;
     max-width: 380px;
     line-height: 1.65;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     position: relative;
     z-index: 1;
 }
@@ -271,23 +271,23 @@
     align-items: center;
     gap: 8px;
     padding: 10px 22px;
-    background: linear-gradient(135deg, #6366F1, #4F46E5);
-    border: 1px solid rgba(99, 102, 241, 0.4);
+    background: linear-gradient(135deg, #ff5555, #e53935);
+    border: 1px solid rgba(255, 85, 85, 0.4);
     border-radius: 50px;
     color: #ffffff;
     font-size: 13px;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
     cursor: pointer;
     transition: all 0.25s ease;
-    box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     margin-top: 6px;
     position: relative;
     z-index: 1;
 }
 .liked-explore-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
 }
 .liked-explore-btn:active { transform: translateY(0); }
 

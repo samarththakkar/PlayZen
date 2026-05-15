@@ -26,7 +26,7 @@
     padding-bottom: env(safe-area-inset-bottom, 0);
 
     /* Subtle top glow line */
-    box-shadow: 0 -1px 0 rgba(99, 102, 241, 0.12),
+    box-shadow: 0 -1px 0 rgba(255, 85, 85, 0.12),
                 0 -20px 40px rgba(0, 0, 0, 0.3);
 }
 
@@ -36,7 +36,7 @@
     position: absolute;
     top: -1px; left: 15%; right: 15%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.35), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,85,85,0.35), transparent);
     pointer-events: none;
 }
 
@@ -70,12 +70,12 @@
     transition: background 0.2s ease;
 }
 .bottom-nav-item:active::after {
-    background: rgba(99, 102, 241, 0.1);
+    background: rgba(255, 85, 85, 0.1);
 }
 
 /* ── ACTIVE STATE ── */
 .bottom-nav-item.active {
-    color: #818CF8;
+    color: #ff5555;
 }
 
 /* Active top indicator dot */
@@ -85,9 +85,9 @@
     top: 0; left: 50%;
     transform: translateX(-50%);
     width: 20px; height: 2.5px;
-    background: linear-gradient(90deg, #6366F1, #818CF8);
+    background: linear-gradient(90deg, #ff5555, #ff8888);
     border-radius: 0 0 3px 3px;
-    box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 8px rgba(255, 85, 85, 0.6);
 }
 
 /* ── ICON ── */
@@ -98,8 +98,8 @@
 }
 .bottom-nav-item.active .bottom-nav-icon {
     transform: translateY(-2px) scale(1.1);
-    color: #818CF8;
-    filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.5));
+    color: #ff5555;
+    filter: drop-shadow(0 0 6px rgba(255, 85, 85, 0.5));
 }
 .bottom-nav-item:active .bottom-nav-icon {
     transform: scale(0.9);
@@ -109,7 +109,7 @@
 .bottom-nav-text {
     font-size: 10px;
     font-weight: 600;
-    font-family: 'Inter', 'Rajdhani', sans-serif;
+    font-family: 'Roboto', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     transition: opacity 0.2s ease;
@@ -118,7 +118,7 @@
     line-height: 1;
 }
 .bottom-nav-item.active .bottom-nav-text {
-    color: #818CF8;
+    color: #ff5555;
 }
 
 /* ── UPLOAD CENTER BUTTON ── */
@@ -126,11 +126,11 @@
     position: relative;
     width: 46px; height: 46px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #6366F1, #4F46E5);
-    border: 1px solid rgba(99, 102, 241, 0.5);
+    background: linear-gradient(135deg, #ff5555, #e53935);
+    border: 1px solid rgba(255, 85, 85, 0.5);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);
+    box-shadow: 0 4px 20px rgba(255, 85, 85, 0.45);
     transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     color: #ffffff;
     margin-bottom: 4px;
@@ -140,11 +140,11 @@
 .bottom-nav-upload::before { display: none; }
 .bottom-nav-upload:active {
     transform: scale(0.92);
-    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 2px 10px rgba(255, 85, 85, 0.3);
 }
 .bottom-nav-upload:hover {
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 8px 28px rgba(99, 102, 241, 0.55);
+    box-shadow: 0 8px 28px rgba(255, 85, 85, 0.55);
 }
 
 /* Glow pulse behind upload button */
@@ -153,7 +153,7 @@
     position: absolute;
     inset: -4px;
     border-radius: 18px;
-    background: rgba(99, 102, 241, 0.2);
+    background: rgba(255, 85, 85, 0.2);
     z-index: -1;
     opacity: 0;
     transition: opacity 0.2s;

@@ -6,7 +6,7 @@ import {
   ThumbsUp, Settings, Flame, Music, Gamepad2,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../../services/api';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import './Sidebar.css';
 
@@ -24,11 +24,11 @@ const NAV_YOU = [
   { to: '/liked-videos', icon: ThumbsUp,   label: 'Liked Videos' },
 ];
 
-const NAV_EXPLORE = [
-  { to: '/trending', icon: Flame,    label: 'Trending' },
-  { to: '/music',    icon: Music,    label: 'Music'    },
-  { to: '/gaming',   icon: Gamepad2, label: 'Gaming'   },
-];
+// const NAV_EXPLORE = [
+//   { to: '/trending', icon: Flame,    label: 'Trending' },
+//   { to: '/music',    icon: Music,    label: 'Music'    },
+//   { to: '/gaming',   icon: Gamepad2, label: 'Gaming'   },
+// ];
 
 /* ── Single nav link ── */
 const NavItem = ({ to, icon: Icon, label }) => (
@@ -93,12 +93,12 @@ const Sidebar = ({ isOpen }) => {
   const fetchChannels = useCallback(async () => {
     if (!user) { setChannels([]); return; }
     try {
-      const { data } = await axios.get('/api/v1/subscriptions/channels?limit=50');
+      const { data } = await api.get('/subscriptions/channels?limit=50');
       // docs is array of { _id, channel: { _id, username, fullname, avatar }, createdAt }
       // We also need hasNew — reuse the feed endpoint's channel list if available,
       // otherwise fall back to subscription list (no hasNew dot)
       try {
-        const feed = await axios.get('/api/v1/videos/subscriptions-feed?limit=1');
+        const feed = await api.get('/videos/subscriptions-feed?limit=1');
         const feedChannels = feed.data?.data?.channels || [];
         if (feedChannels.length) {
           setChannels(feedChannels);
@@ -180,9 +180,9 @@ const Sidebar = ({ isOpen }) => {
       {/* ── EXPLORE ── */}
       <div className="sidebar-section">
         <SectionTitle>Explore</SectionTitle>
-        {NAV_EXPLORE.map(({ to, icon, label }) => (
+        {/* {NAV_EXPLORE.map(({ to, icon, label }) => (
           <NavItem key={to} to={to} icon={icon} label={label} />
-        ))}
+        ))} */}
       </div>
 
       {/* ── SETTINGS ── */}
