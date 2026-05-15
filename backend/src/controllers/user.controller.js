@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
@@ -111,6 +112,9 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Password is required for regular registration");
     }
 
+    const existedUserByUsername = await User.findOne({ username: normalizedUsername });
+    const existedUserByEmail = await User.findOne({ email: emailTrimmed });
+
     if (existedUserByUsername && existedUserByUsername.email !== emailTrimmed) {
         throw new ApiError(409, "This username is already taken. Please try another one.");
     }
@@ -123,17 +127,17 @@ const registerUser = asyncHandler(async (req, res) => {
     let avatarUrl = "";
     if (req.files?.avatar?.[0]) {
         const avatar = await uploadOnCloudinary(req.files.avatar[0].path);
-        avatarUrl = avatar?.url || "";
+        avatarUrl = avatar?.secure_url || "";
     }
 
-    if (!avatarUrl) {
-        // Vibrant hex colors excluding black, dark gray, and browns.
+    // We'll generate a fallback UI avatar only if we don't have an uploaded one 
+    // AND we'll check for an existing avatar (like Google) during the save/update phase below.
+    if (!avatarUrl && (!existedUserByEmail || !existedUserByEmail.avatar)) {
         const vibrantColors = [
             'ef4444', 'f97316', 'f59e0b', 'eab308', '84cc16',
             '22c55e', '10b981', '14b8a6', '06b6d4', '0ea5e9',
             '3b82f6', '6366f1', '8b5cf6', 'a855f7', 'd946ef', 'f43f5e'
         ];
-        // Hash the username or email to pick a consistent color for this initial creation
         const hashStr = normalizedUsername || emailTrimmed || 'user';
         let hash = 0;
         for (let i = 0; i < hashStr.length; i++) {
@@ -149,7 +153,7 @@ const registerUser = asyncHandler(async (req, res) => {
 let coverImageUrl = "";
 if (req.files?.coverImage?.[0]) {
     const coverImage = await uploadOnCloudinary(req.files.coverImage[0].path);
-    coverImageUrl = coverImage?.url || "";
+    coverImageUrl = coverImage?.secure_url || "";
 }
 
 // Cover image fallback — generate gradient if not uploaded
@@ -186,7 +190,9 @@ if (!coverImageUrl) {
             existedUserByEmail.password = password;
         } else {
             existedUserByEmail.provider = provider;
-            existedUserByEmail.providerId = providerId;
+            if (provider === 'google') {
+                existedUserByEmail.googleId = providerId;
+            }
             existedUserByEmail.isEmailVerified = true;
         }
 
@@ -201,7 +207,7 @@ if (!coverImageUrl) {
             avatar: avatarUrl,
             coverImage: coverImageUrl,
             provider,
-            providerId,
+            googleId: provider === 'google' ? providerId : undefined,
             isEmailVerified: true
         };
         user = await User.create(userData);
@@ -209,13 +215,20 @@ if (!coverImageUrl) {
 
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering user");
-    }
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(createdUser._id);
+    const options = getCookieOptions();
 
-    return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered successfully")
-    );
+    return res
+        .status(201)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                201,
+                { user: createdUser, accessToken, refreshToken },
+                "User registered and logged in successfully"
+            )
+        );
 })
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -361,7 +374,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is missing")
     }
     const avatar = await uploadOnCloudinary(avatarLocalPath)
-    if (!avatar.url) {
+    if (!avatar.secure_url) {
         throw new ApiError(400, "Error while uploading an avatar")
     }
 
@@ -369,7 +382,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         req.user?._id,
         {
             $set: {
-                avatar: avatar.url
+                avatar: avatar.secure_url
             }
         },
         { new: true }
@@ -386,7 +399,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is missing")
     }
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-    if (!coverImage.url) {
+    if (!coverImage.secure_url) {
         throw new ApiError(400, "Error while uploading an avatar")
     }
 
@@ -394,7 +407,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         req.user?._id,
         {
             $set: {
-                coverImage: coverImage.url
+                coverImage: coverImage.secure_url
             }
         },
         { new: true }

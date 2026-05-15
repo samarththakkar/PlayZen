@@ -85,6 +85,37 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /* ─────────────────────────────────────────────
+     REGISTER
+  ───────────────────────────────────────────── */
+  const register = useCallback(async (userData) => {
+    setAuthError(null);
+    try {
+      const response = await authService.register(userData);
+
+      const registeredUser =
+        response.data?.data?.user ||
+        response.data?.user       ||
+        response.data?.data       ||
+        response.data;
+
+      if (!registeredUser) {
+        throw new Error('Invalid registration response — no user data returned.');
+      }
+
+      setUser(registeredUser);
+      setIsAuthenticated(true);
+      return response;
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message                 ||
+        'Registration failed. Please try again.';
+      setAuthError(message);
+      throw error;
+    }
+  }, []);
+
+  /* ─────────────────────────────────────────────
      LOGOUT
   ───────────────────────────────────────────── */
   const logout = useCallback(async () => {
@@ -124,6 +155,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     authError,
     login,
+    register,
     logout,
     updateUserSession,
     clearAuthError,

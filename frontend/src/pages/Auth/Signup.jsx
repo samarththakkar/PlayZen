@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 import './Signup.css';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -183,8 +185,8 @@ const Signup = () => {
       if (stepThreeData.coverImage) {
         data.append('coverImage', stepThreeData.coverImage);
       }
-      await api.post('/users/register', data, { headers: { 'Content-Type': 'multipart/form-data' } });
-      navigate('/login', { state: { message: 'Registration successful. Please login!' } });
+      await register(data);
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to complete registration.');
     } finally {
@@ -220,7 +222,7 @@ const Signup = () => {
           <button
             type="button"
             className="auth-social-btn"
-            onClick={() => window.location.href = 'http://localhost:8000/api/v1/users/auth/google'}
+            onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL}/users/auth/google`}
           >
             <svg className="social-icon" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

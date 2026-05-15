@@ -25,36 +25,19 @@ const Profile = () => {
     const fetchProfileAndVideos = async () => {
       setLoading(true);
       try {
-        // Mocking the profile data logic for now
-        // In a real scenario, we would hit /api/v1/users/channel/:username
-        // Or if own profile, we just use the user object directly.
-        
-        let targetUser = null;
-        if (isOwnProfile && user) {
-          targetUser = {
-            fullname: user.fullname || "My Profile",
-            username: user.username || "me",
-            avatar: user.avatar || "",
-            coverImage: user.coverImage || "",
-            subscribersCount: user.subscribersCount || 0,
-            isSubscribed: false
-          };
-        } else {
-          // Attempt to fetch public channel info
-          // Fallback dummy for now to prevent breaking React
-          targetUser = {
-            fullname: username || "User Profile",
-            username: username || "user",
-            avatar: "",
-            coverImage: "",
-            subscribersCount: 120,
-            isSubscribed: false
-          };
+        // Fetch channel profile data from backend
+        const searchUsername = username || user?.username;
+        if (!searchUsername) {
+          throw new Error("No username found to fetch profile");
         }
-        setProfileData(targetUser);
+
+        const channelResponse = await api.get(`/users/channel/${searchUsername}`);
+        if (channelResponse.data.success) {
+          setProfileData(channelResponse.data.data);
+        }
 
         // Fetch videos for this specific user.
-        const targetUsername = targetUser.username;
+        const targetUsername = searchUsername;
         if (targetUsername) {
           const response = await api.get(`/videos/user-videos/${targetUsername}`);
           if (response.data.success) {
@@ -75,7 +58,6 @@ const Profile = () => {
       }
     };
 
-    fetchProfileAndVideos();
     fetchProfileAndVideos();
   }, [username, user, isOwnProfile]);
 

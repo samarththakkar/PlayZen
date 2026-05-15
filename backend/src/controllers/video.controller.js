@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Video } from "../models/video.model.js";
@@ -36,8 +37,8 @@ const uploadVideo = asyncHandler(async (req, res) => {
     const slug = slugify(title, { lower: true, trim: true });
 
     const video = await Video.create({
-        videoFile: videoFile.url,
-        thumbnail: thumbnail.url,
+        videoFile: videoFile.secure_url,
+        thumbnail: thumbnail.secure_url,
         title,
         description,
         duration: videoFile.duration,
@@ -250,7 +251,7 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
         await deleteFromCloudinary(oldVideoPublicId, "video");
 
         const uploadedVideo = await uploadOnCloudinary(videoLocalPath, "video");
-        video.videoFile = uploadedVideo.url;
+        video.videoFile = uploadedVideo.secure_url;
         video.duration = uploadedVideo.duration;
     }
 
@@ -261,7 +262,7 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
         await deleteFromCloudinary(oldThumbnailPublicId, "image");
 
         const uploadedThumbnail = await uploadOnCloudinary(thumbnailLocalPath, "image");
-        video.thumbnail = uploadedThumbnail.url;
+        video.thumbnail = uploadedThumbnail.secure_url;
     }
 
     await video.save();
