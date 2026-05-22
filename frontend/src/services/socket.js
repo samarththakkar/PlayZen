@@ -1,11 +1,16 @@
 import { io } from "socket.io-client";
 
+// In dev: use localhost. In production: use the VITE_SOCKET_URL env var pointing at your Render backend.
+// Set VITE_SOCKET_URL=https://your-render-app.onrender.com in Vercel's environment variables.
 const getSocketUrl = () => {
-    // If we're on localhost (Vite dev server), connect directly to backend on port 8000
+    if (import.meta.env.VITE_SOCKET_URL) {
+        return import.meta.env.VITE_SOCKET_URL;
+    }
+    // Fallback for local dev without the env var
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
         return "http://localhost:8000";
     }
-    // In production, connect to same origin
+    // Last resort: same origin (only works if frontend and backend are on the same domain)
     return window.location.origin;
 };
 
@@ -18,6 +23,7 @@ export const initSocket = (userId) => {
         socket = io(socketUrl, {
             autoConnect: false,
             withCredentials: true,
+            transports: ["websocket", "polling"], // prefer websocket, fall back to polling
         });
     }
 
@@ -29,6 +35,11 @@ export const initSocket = (userId) => {
             if (userId) {
                 socket.emit("register-user", userId);
             }
+        });
+
+        socket.on("connect_error", (err) => {
+            // Log but never show a user-facing toast — sockets are optional/graceful degradation
+            console.warn("Socket connection error (non-fatal):", err.message);
         });
 
         socket.on("disconnect", () => {
