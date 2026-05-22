@@ -172,14 +172,20 @@ const VideoCard = ({ video }) => {
   };
 
   /* Navigation */
-  const handleVideoClick = () =>
-    user ? navigate(`/watch/${video.id || video._id}`) : navigate('/login');
+  const handleVideoClick = () => {
+    const videoId = video._id || video.id;
+    if (videoId) navigate(`/watch/${videoId}`);
+  };
 
   const handleChannelClick = (e) => {
     e.stopPropagation();
-    user
-      ? navigate(`/channel/${video.channelId || video.uploaderUsername}`)
-      : navigate('/login');
+    // Use the correct populated owner fields from the backend
+    const username = video.owner?.username || video.channelId || video.uploaderUsername;
+    if (username) {
+      navigate(`/channel/${username}`);
+    } else if (video.owner?._id) {
+      navigate(`/profile/${video.owner._id}`);
+    }
   };
 
   const toggleMenu = (e) => {
