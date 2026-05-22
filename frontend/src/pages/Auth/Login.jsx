@@ -18,6 +18,8 @@ const Login = () => {
   const handleInputChange = (e) =>
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+  const redirectTo = location.state?.from || '/';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -28,7 +30,7 @@ const Login = () => {
     setLoading(true);
     try {
       await login({ email: formData.email, password: formData.password });
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {

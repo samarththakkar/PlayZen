@@ -174,7 +174,12 @@ const VideoCard = ({ video }) => {
   /* Navigation */
   const handleVideoClick = () => {
     const videoId = video._id || video.id;
-    if (videoId) navigate(`/watch/${videoId}`);
+    if (!videoId) return;
+    if (!user) {
+      navigate('/login', { state: { from: `/watch/${videoId}` } });
+      return;
+    }
+    navigate(`/watch/${videoId}`);
   };
 
   const handleChannelClick = (e) => {

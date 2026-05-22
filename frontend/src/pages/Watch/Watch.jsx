@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ThumbsUp, ThumbsDown, Share2, BookmarkPlus, 
   MoreHorizontal, Flag, MessageSquare,
@@ -43,11 +43,21 @@ const copyToClipboard = (text) => {
 const Watch = () => {
   const { videoId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated } = useAuth();
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Guard: unauthenticated users must log in first, then return here
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', {
+        replace: true,
+        state: { from: location.pathname },
+      });
+    }
+  }, [isAuthenticated, navigate, location.pathname]);
 
   const [similarVideos, setSimilarVideos] = useState([]);
 
