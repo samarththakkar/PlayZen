@@ -38,8 +38,8 @@ app.use(cors({
   ]
 }));
 
-// Handle preflight requests for all routes
-app.options("*", cors());
+// Handle preflight OPTIONS requests for all routes (Express 5 compatible — no bare "*")
+app.options(/(.*)/,  cors());
 
 // Middlewares
 app.use(express.json({ limit: "16kb" }));
