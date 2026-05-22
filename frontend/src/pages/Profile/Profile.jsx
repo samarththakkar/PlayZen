@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useNavigationType } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api'; // Or axios directly depending on your setup
 import VideoCard from '../../components/video/VideoCard';
@@ -17,6 +18,53 @@ const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [playlists, setPlaylists] = useState([]);
+  const [playlistsLoading, setPlaylistsLoading] = useState(false);
+  const [playlistsError, setPlaylistsError] = useState(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+
+  const navigationType = useNavigationType();
+
+  // Reset or restore active tab based on navigation type
+  useEffect(() => {
+    if (navigationType === 'PUSH') {
+      sessionStorage.removeItem('profile_scroll_y');
+      sessionStorage.removeItem('profile_active_tab');
+    } else if (navigationType === 'POP') {
+      const savedTab = sessionStorage.getItem('profile_active_tab');
+      if (savedTab) {
+        setActiveTab(savedTab);
+      }
+    }
+  }, [navigationType]);
+
+  // Save active tab on change
+  useEffect(() => {
+    sessionStorage.setItem('profile_active_tab', activeTab);
+  }, [activeTab]);
+
+  // Save scroll Y position on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('profile_scroll_y', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Restore scroll position when loading is done
+  useEffect(() => {
+    if (!loading && navigationType === 'POP') {
+      const savedScrollY = sessionStorage.getItem('profile_scroll_y');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [loading, navigationType]);
 
   // Determine if viewing own profile or someone else's
   const isOwnProfile = !username || (user && user.username === username);
@@ -60,6 +108,38 @@ const Profile = () => {
 
     fetchProfileAndVideos();
   }, [username, user, isOwnProfile]);
+
+  // Fetch user playlists when tab is Playlists
+  useEffect(() => {
+    if (activeTab !== 'Playlists' || !profileData?._id) return;
+    
+    let isMounted = true;
+    setPlaylistsLoading(true);
+    setPlaylistsError(null);
+    
+    api.get(`/playlists/user-playlists/${profileData._id}`)
+      .then(res => {
+        if (isMounted) {
+          setPlaylists(res.data?.data || []);
+          setPlaylistsLoading(false);
+        }
+      })
+      .catch(err => {
+        if (isMounted) {
+          if (err.response?.status === 404) {
+            setPlaylists([]);
+          } else {
+            console.error("Failed to load user playlists:", err);
+            setPlaylistsError("Failed to load playlists");
+          }
+          setPlaylistsLoading(false);
+        }
+      });
+      
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, profileData?._id]);
 
   const { isSubscribed: isChannelSubscribed, subscribersCount: subCountHook, toggle: toggleSubscribe } = useSubscription(profileData?._id || profileData?.username);
 
@@ -180,10 +260,52 @@ const Profile = () => {
           )}
 
           {activeTab === 'Playlists' && (
-              <div className="profile-empty-state">
-                  <h3>No Playlists</h3>
-                  <p>Playlists functionality coming soon.</p>
-              </div>
+              playlistsLoading ? (
+                  <div className="profile-playlists-loading">Loading playlists...</div>
+              ) : playlistsError ? (
+                  <div className="profile-empty-state">
+                      <h3>Error loading playlists</h3>
+                      <p>{playlistsError}</p>
+                  </div>
+              ) : playlists.length > 0 ? (
+                  <div className="profile-playlists-grid">
+                      {playlists.map((playlist) => {
+                          const videoCount = (playlist.videos || []).length;
+                          const thumbnailSrc = playlist.thumbnail || 
+                                               (playlist.videos && playlist.videos[0]?.thumbnail) || 
+                                               "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
+                          return (
+                              <div 
+                                  key={playlist._id} 
+                                  className="playlist-grid-card"
+                                  onClick={() => setSelectedPlaylist(playlist)}
+                              >
+                                  <div className="playlist-card-thumbnail-container">
+                                      <div className="playlist-card-stack-back"></div>
+                                      <div className="playlist-card-stack-mid"></div>
+                                      <div className="playlist-card-thumbnail-wrapper">
+                                          <img 
+                                              src={thumbnailSrc} 
+                                              alt={playlist.title} 
+                                              className="playlist-card-thumbnail" 
+                                          />
+                                          <div className="playlist-card-overlay">
+                                              <span className="playlist-video-count">{videoCount} video{videoCount !== 1 ? 's' : ''}</span>
+                                          </div>
+                                      </div>
+                                  </div>
+                                  <h3 className="playlist-card-title">{playlist.title}</h3>
+                                  <p className="playlist-card-desc">{playlist.description}</p>
+                              </div>
+                          );
+                      })}
+                  </div>
+              ) : (
+                  <div className="profile-empty-state">
+                      <h3>No Playlists</h3>
+                      <p>{isOwnProfile ? "You haven't created any playlists yet." : "This channel hasn't created any playlists yet."}</p>
+                  </div>
+              )
           )}
 
           {activeTab === 'About' && (
@@ -198,7 +320,49 @@ const Profile = () => {
           )}
       </section>
 
+      {selectedPlaylist && (
+        <PlaylistDetailModal
+          playlist={selectedPlaylist}
+          onClose={() => setSelectedPlaylist(null)}
+        />
+      )}
     </div>
+  );
+};
+
+/* ── PLAYLIST DETAIL MODAL COMPONENT ── */
+const PlaylistDetailModal = ({ playlist, onClose }) => {
+  if (!playlist) return null;
+
+  const videoCount = (playlist.videos || []).length;
+  
+  return createPortal(
+    <div className="playlist-modal-overlay" onClick={onClose}>
+      <div className="playlist-modal-content playlist-detail-modal-content" onClick={e => e.stopPropagation()}>
+        <div className="playlist-modal-header">
+          <div>
+            <h3>{playlist.title}</h3>
+            <p className="playlist-detail-modal-desc">
+              {videoCount} video{videoCount !== 1 ? 's' : ''} &bull; {playlist.description || "No description"}
+            </p>
+          </div>
+          <button className="close-modal-btn" onClick={onClose}>&times;</button>
+        </div>
+
+        <div className="playlist-modal-body playlist-detail-modal-body">
+          {videoCount === 0 ? (
+            <div className="no-playlists-msg" style={{ padding: '2rem 0' }}>This playlist has no videos yet.</div>
+          ) : (
+            <div className="playlist-detail-videos-list">
+              {playlist.videos.map((video) => (
+                <VideoCard key={video._id} video={video} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 };
 

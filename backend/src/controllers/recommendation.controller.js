@@ -5,6 +5,7 @@ import { Video } from "../models/video.model.js";
 import { Interest } from "../models/interest.model.js";
 import { WatchProgress } from "../models/watchProgress.model.js";
 import { Like } from "../models/likes.model.js";
+import { Report } from "../models/report.model.js";
 
 // ═══════════════════════════════════════
 // INTERNAL UTILITY — Update user interests
@@ -111,6 +112,9 @@ const getPersonalizedFeed = asyncHandler(async (req, res) => {
     // Get user interests
     const interest = await Interest.findOne({ user: userId });
 
+    const notInterestedVideoIds = interest?.notInterestedVideos || [];
+    const blockedChannelIds = interest?.blockedChannels || [];
+
     // Get videos user already watched
     const watchedVideoIds = await WatchProgress.find({ user: userId })
         .distinct("video");
@@ -128,13 +132,22 @@ const getPersonalizedFeed = asyncHandler(async (req, res) => {
     // NOTE: We no longer exclude seen videos — we show everything
     // so the feed is never empty for small libraries.
     if (!interest || interest.categoryScores.length === 0) {
-        const trending = await Video.find({
+        const trendingQuery = {
             isPublished: true,
             $or: [
                 { isShort: false },
                 { isShort: { $exists: false } }
             ]
-        })
+        };
+
+        if (notInterestedVideoIds.length > 0) {
+            trendingQuery._id = { $nin: notInterestedVideoIds };
+        }
+        if (blockedChannelIds.length > 0) {
+            trendingQuery.owner = { $nin: blockedChannelIds };
+        }
+
+        const trending = await Video.find(trendingQuery)
             .populate("owner", "username fullname avatar")
             .sort({ views: -1, createdAt: -1 })
             .skip(skip)
@@ -177,6 +190,8 @@ const getPersonalizedFeed = asyncHandler(async (req, res) => {
     // ═══════════════════════════════════
     const videos = await Video.getPersonalizedFeed({
         seenVideoIds: [],   // Don't exclude — deprioritize via score instead
+        notInterestedVideoIds,
+        blockedChannelIds,
         topChannels,
         topCategories,
         tagRegex,
@@ -236,7 +251,7 @@ const getSimilarVideos = asyncHandler(async (req, res) => {
 // GET USER INTERESTS
 // For settings page — show what we think user likes
 // ═══════════════════════════════════════
-export const getUserInterests = asyncHandler(async (req, res) => {
+const getUserInterests = asyncHandler(async (req, res) => {
     const interest = await Interest.findOne({ user: req.user._id });
 
     if (!interest) {
@@ -263,7 +278,122 @@ export const getUserInterests = asyncHandler(async (req, res) => {
     );
 });
 
+// ═══════════════════════════════════════
+// TOGGLE NOT INTERESTED
+// Mark a video as not interested to exclude it
+// ═══════════════════════════════════════
+const toggleNotInterested = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+    if (!videoId) {
+        throw new ApiError(400, "Video ID is required");
+    }
+
+    let interest = await Interest.findOne({ user: req.user._id });
+    if (!interest) {
+        interest = new Interest({ user: req.user._id });
+    }
+
+    const index = interest.notInterestedVideos.indexOf(videoId);
+    let isAdded = false;
+    if (index > -1) {
+        interest.notInterestedVideos.splice(index, 1);
+    } else {
+        interest.notInterestedVideos.push(videoId);
+        isAdded = true;
+    }
+
+    await interest.save();
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            { isNotInterested: isAdded },
+            isAdded ? "Added to Not Interested" : "Removed from Not Interested"
+        )
+    );
+});
+
+// ═══════════════════════════════════════
+// TOGGLE BLOCKED CHANNEL
+// Exclude a channel's videos from recommendations
+// ═══════════════════════════════════════
+const toggleBlockedChannel = asyncHandler(async (req, res) => {
+    const { channelId } = req.params;
+    if (!channelId) {
+        throw new ApiError(400, "Channel ID is required");
+    }
+
+    let interest = await Interest.findOne({ user: req.user._id });
+    if (!interest) {
+        interest = new Interest({ user: req.user._id });
+    }
+
+    const index = interest.blockedChannels.indexOf(channelId);
+    let isBlocked = false;
+    if (index > -1) {
+        interest.blockedChannels.splice(index, 1);
+    } else {
+        interest.blockedChannels.push(channelId);
+        isBlocked = true;
+    }
+
+    await interest.save();
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            { isBlocked },
+            isBlocked ? "Channel blocked successfully" : "Channel unblocked successfully"
+        )
+    );
+});
+
+// ═══════════════════════════════════════
+// REPORT VIDEO
+// Save report reason and hide video locally
+// ═══════════════════════════════════════
+const reportVideo = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+    const { reason } = req.body;
+
+    if (!videoId) {
+        throw new ApiError(400, "Video ID is required");
+    }
+    if (!reason) {
+        throw new ApiError(400, "Reason is required");
+    }
+
+    // Save report entry
+    const existingReport = await Report.findOne({ user: req.user._id, video: videoId });
+    if (!existingReport) {
+        await Report.create({
+            user: req.user._id,
+            video: videoId,
+            reason
+        });
+    }
+
+    // Add to notInterestedVideos to hide it
+    let interest = await Interest.findOne({ user: req.user._id });
+    if (!interest) {
+        interest = new Interest({ user: req.user._id });
+    }
+
+    if (!interest.notInterestedVideos.includes(videoId)) {
+        interest.notInterestedVideos.push(videoId);
+        await interest.save();
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, null, "Video reported successfully")
+    );
+});
+
 export {
     getPersonalizedFeed,
-    getSimilarVideos
+    getSimilarVideos,
+    getUserInterests,
+    toggleNotInterested,
+    toggleBlockedChannel,
+    reportVideo
 };

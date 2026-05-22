@@ -1,5 +1,14 @@
 import axiosInstance from "./api";
 
+export const getNotifications = async () => {
+  try {
+    const res = await axiosInstance.get(`/notifications`);
+    return { data: res.data.notifications || [], error: null };
+  } catch (err) {
+    return { data: null, error: err.response?.data?.message || "Something went wrong" };
+  }
+};
+
 export const getUnreadCount = async (userId) => {
   try {
     const res = await axiosInstance.get(`/notifications/unread-count`);
@@ -26,3 +35,13 @@ export const markAllAsRead = async (userId) => {
     return { data: null, error: err.response?.data?.message || "Something went wrong" };
   }
 };
+
+export const deleteNotificationById = async (notificationId) => {
+  try {
+    const res = await axiosInstance.delete(`/notifications/${notificationId}`);
+    return { data: res.data.message, error: null };
+  } catch (err) {
+    return { data: null, error: err.response?.data?.message || "Something went wrong" };
+  }
+};
+

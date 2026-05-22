@@ -27,6 +27,12 @@ const settingsSchema = new Schema(
                 default: true
             }
         },
+        playback: {
+            hoverAutoplay: {
+                type: Boolean,
+                default: true
+            }
+        }
     },
     { timestamps: true }
 );

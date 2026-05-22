@@ -44,6 +44,11 @@ const userSchema = new Schema(
             trim: true,
             index: true,
         },
+        bio: {
+            type: String,
+            default: "",
+            trim: true,
+        },
         avatar: {
             type: String, // cloudinary url or Google profile photo
         },

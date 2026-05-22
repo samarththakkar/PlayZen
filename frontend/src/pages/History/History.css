@@ -30,26 +30,7 @@
 }
 
 .history-header-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.history-header-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    /* background: rgba(99, 102, 241, 0.12); */
-    background-color: #0D0D0D !important;
-    /* border: 1px solid rgba(99, 102, 241, 0.22); */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* color: #818CF8; */
-    color: rgba(255, 255, 255, 0.5);
-    flex-shrink: 0;
-    /* box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15); */
+    display: block;
 }
 
 .history-title {
@@ -57,15 +38,8 @@
     font-size: 22px;
     font-weight: 700;
     color: #ffffff;
-    margin: 0 0 3px;
-    letter-spacing: -0.02em;
-}
-
-.history-subtitle {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.38);
     margin: 0;
-    font-family: 'Roboto', sans-serif;
+    letter-spacing: -0.02em;
 }
 
 .history-clear-btn {
@@ -106,8 +80,14 @@
 /* ── HISTORY GRID ── */
 .history-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
     gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .history-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 /* ── HISTORY CARD (vertical layout) ── */
@@ -337,15 +317,10 @@
 .history-explore-btn:active { transform: translateY(0); }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 1024px) {
-    .history-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
 @media (max-width: 640px) {
     .history-page      { padding: 20px 16px 40px; }
     .history-title     { font-size: 18px; }
     .history-clear-btn { padding: 8px 12px; font-size: 12px; }
     .history-empty     { padding: 48px 20px; }
     .history-header    { flex-wrap: wrap; }
-    .history-grid      { grid-template-columns: 1fr; }
 }

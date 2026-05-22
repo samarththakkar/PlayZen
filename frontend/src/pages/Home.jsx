@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Info, Flame, Music, Video, Laptop, GraduationCap, Radio, Mic } from 'lucide-react';
+import { useNavigationType } from 'react-router-dom';
 import VideoCard from '../components/video/VideoCard';
 import Skeleton from '../components/ui/Skeleton';
 import api from '../services/api';
@@ -16,6 +17,49 @@ const Home = () => {
   const [dynamicCategories, setDynamicCategories] = useState([
     { name: "All", icon: <Flame size={16} /> }
   ]);
+
+  const navigationType = useNavigationType();
+
+  // Reset or restore active category based on navigation type
+  useEffect(() => {
+    if (navigationType === 'PUSH') {
+      sessionStorage.removeItem('home_scroll_y');
+      sessionStorage.removeItem('home_active_category');
+    } else if (navigationType === 'POP') {
+      const savedCat = sessionStorage.getItem('home_active_category');
+      if (savedCat) {
+        setActiveCategory(savedCat);
+      }
+    }
+  }, [navigationType]);
+
+  // Save active category on change
+  useEffect(() => {
+    sessionStorage.setItem('home_active_category', activeCategory);
+  }, [activeCategory]);
+
+  // Save scroll Y position on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('home_scroll_y', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Restore scroll position when videos finish loading
+  useEffect(() => {
+    if (!loading && navigationType === 'POP') {
+      const savedScrollY = sessionStorage.getItem('home_scroll_y');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [loading, navigationType]);
 
   const getIconForCategory = (name) => {
     const icons = {

@@ -55,6 +55,19 @@ const interestSchema = new Schema(
             }
         ],
 
+        notInterestedVideos: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Video"
+            }
+        ],
+        blockedChannels: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ],
+
         // Last time interests were recalculated
         lastUpdated: {
             type: Date,

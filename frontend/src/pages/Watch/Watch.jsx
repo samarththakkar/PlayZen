@@ -6,6 +6,7 @@ import {
   Link, Facebook, Twitter, BookmarkCheck
 } from 'lucide-react';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 import './Watch.css';
 import Skeleton from '../../components/ui/Skeleton';
 import { getAvatarUrl } from '../../utils/avatarUtils';
@@ -15,6 +16,29 @@ import useSubscription from '../../hooks/useSubscription';
 import useWatchProgress from '../../hooks/useWatchProgress';
 import VideoCard from '../../components/video/VideoCard';
 import { useAuth } from '../../hooks/useAuth';
+
+const copyToClipboard = (text) => {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  } else {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    return new Promise((resolve, reject) => {
+      if (document.execCommand('copy')) {
+        resolve();
+      } else {
+        reject(new Error("execCommand failed"));
+      }
+      textArea.remove();
+    });
+  }
+};
 
 const Watch = () => {
   const { videoId } = useParams();
@@ -139,9 +163,15 @@ const Watch = () => {
   };
 
   const copyUrl = () => {
-    navigator.clipboard.writeText(window.location.href);
+    copyToClipboard(window.location.href)
+      .then(() => {
+        toast.success("Link copied to clipboard!");
+      })
+      .catch((err) => {
+        console.error("Failed to copy watch link: ", err);
+        toast.error("Failed to copy link: " + window.location.href);
+      });
     setShowShareMenu(false);
-    alert("URL Copied to clipboard!");
   };
 
   return (
@@ -231,8 +261,19 @@ const Watch = () => {
                 onClick={() => {
                   if (!user) return;
                   api.post(`/watch-later/toggle/${videoId}`)
-                    .then(res => setIsSaved(res.data?.data?.saved ?? !isSaved))
-                    .catch(() => {});
+                    .then(res => {
+                      const saved = res.data?.data?.saved;
+                      setIsSaved(saved ?? !isSaved);
+                      if (saved) {
+                        toast.success("Added to Watch Later");
+                      } else {
+                        toast.success("Removed from Watch Later");
+                      }
+                    })
+                    .catch((err) => {
+                      console.error("Error toggling Watch Later:", err);
+                      toast.error("Failed to update Watch Later");
+                    });
                 }}
               >
                 {isSaved ? <BookmarkCheck size={20} fill="currentColor" /> : <BookmarkPlus size={20} />}

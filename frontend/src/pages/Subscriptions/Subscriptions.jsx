@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useNavigationType } from 'react-router-dom';
 import { Bell, Search, AlertCircle, RefreshCw, CheckCircle2, Dot } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
@@ -18,7 +18,49 @@ const Subscriptions = () => {
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState('');
   const [totalDocs,     setTotalDocs]     = useState(0);
-  const [showAllCh,     setShowAllCh]     = useState(false);
+
+  const navigationType = useNavigationType();
+
+  // Reset or restore active channel based on navigation type
+  useEffect(() => {
+    if (navigationType === 'PUSH') {
+      sessionStorage.removeItem('subs_scroll_y');
+      sessionStorage.removeItem('subs_active_channel');
+    } else if (navigationType === 'POP') {
+      const savedChannel = sessionStorage.getItem('subs_active_channel');
+      if (savedChannel) {
+        setActiveChannel(savedChannel === 'null' ? null : savedChannel);
+      }
+    }
+  }, [navigationType]);
+
+  // Save active channel on change
+  useEffect(() => {
+    sessionStorage.setItem('subs_active_channel', activeChannel ? String(activeChannel) : 'null');
+  }, [activeChannel]);
+
+  // Save scroll Y position on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('subs_scroll_y', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Restore scroll position when loading finishes
+  useEffect(() => {
+    if (!loading && navigationType === 'POP') {
+      const savedScrollY = sessionStorage.getItem('subs_scroll_y');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [loading, navigationType]);
 
   const fetchFeed = useCallback(async () => {
     if (!user) return;
@@ -42,9 +84,6 @@ const Subscriptions = () => {
   const displayedVideos = activeChannel
     ? videos.filter(v => String(v.owner?._id) === activeChannel)
     : videos;
-
-  const INITIAL_CH   = 8;
-  const visibleCh    = showAllCh ? channels : channels.slice(0, INITIAL_CH);
 
   /* ── NOT LOGGED IN ── */
   if (!user) {
@@ -71,15 +110,7 @@ const Subscriptions = () => {
       {/* ── TOP HEADER ── */}
       <div className="subs-header">
         <div className="subs-header-left">
-          <div className="subs-header-icon"><Bell size={19} /></div>
-          <div>
-            <h1 className="subs-title">Subscriptions</h1>
-            <p className="subs-subtitle">
-              {totalDocs > 0
-                ? `${totalDocs} video${totalDocs !== 1 ? 's' : ''} from channels you follow`
-                : 'Latest from channels you follow'}
-            </p>
-          </div>
+          <h1 className="subs-title">Subscriptions</h1>
         </div>
         <div className="subs-header-actions">
           <button className="subs-refresh-btn" onClick={fetchFeed} disabled={loading} title="Refresh">
@@ -92,67 +123,49 @@ const Subscriptions = () => {
         </div>
       </div>
 
-      {/* ── BODY: sidebar + grid ── */}
-      <div className="subs-body">
-
-        {/* ══ LEFT: CHANNEL LIST ══ */}
-        {channels.length > 0 && (
-          <aside className="subs-sidebar">
-            <div className="subs-sidebar-inner">
-
-              {/* ALL button */}
-              <button
-                className={`subs-ch-row ${!activeChannel ? 'active' : ''}`}
-                onClick={() => setActiveChannel(null)}
-              >
-                <div className="subs-ch-all-icon">
-                  <Bell size={13} />
-                </div>
-                <span className="subs-ch-label">All</span>
-                {!activeChannel && <span className="subs-ch-active-bar" />}
-              </button>
-
-              {/* Channel rows */}
-              {visibleCh.map(({ _id, channel, hasNew }) => {
-                if (!channel) return null;
-                const avatar   = getAvatarUrl(channel, channel.fullname || channel.username || 'C');
-                const isActive = activeChannel === String(channel._id);
-                return (
-                  <button
-                    key={_id}
-                    className={`subs-ch-row ${isActive ? 'active' : ''}`}
-                    onClick={() => setActiveChannel(isActive ? null : String(channel._id))}
-                    title={channel.fullname || channel.username}
-                  >
-                    <div className="subs-ch-avatar-wrap">
-                      <img src={avatar} alt="" className="subs-ch-avatar" />
-                      {hasNew && <span className="subs-ch-dot" />}
-                    </div>
-                    <span className="subs-ch-label">
-                      {channel.fullname || channel.username}
-                    </span>
-                    {isActive && <span className="subs-ch-active-bar" />}
-                  </button>
-                );
-              })}
-
-              {/* Show more / less */}
-              {channels.length > INITIAL_CH && (
-                <button
-                  className="subs-ch-more-btn"
-                  onClick={() => setShowAllCh(p => !p)}
-                >
-                  {showAllCh
-                    ? '↑ Show less'
-                    : `↓ Show ${channels.length - INITIAL_CH} more`}
-                </button>
-              )}
-
+      {/* ── HORIZONTAL CHANNELS BAR ── */}
+      {channels.length > 0 && (
+        <div className="subs-channels-bar">
+          {/* ALL button */}
+          <button
+            className={`subs-ch-item ${!activeChannel ? 'active' : ''}`}
+            onClick={() => setActiveChannel(null)}
+          >
+            <div className="subs-ch-icon-wrap">
+              <div className="subs-ch-all-icon">
+                <Bell size={18} />
+              </div>
             </div>
-          </aside>
-        )}
+            <span className="subs-ch-label">All</span>
+          </button>
 
-        {/* ══ RIGHT: VIDEO GRID ══ */}
+          {/* Channel items */}
+          {channels.map(({ _id, channel, hasNew }) => {
+            if (!channel) return null;
+            const avatar   = getAvatarUrl(channel, channel.fullname || channel.username || 'C');
+            const isActive = activeChannel === String(channel._id);
+            return (
+              <button
+                key={_id}
+                className={`subs-ch-item ${isActive ? 'active' : ''}`}
+                onClick={() => setActiveChannel(isActive ? null : String(channel._id))}
+                title={channel.fullname || channel.username}
+              >
+                <div className="subs-ch-icon-wrap">
+                  <img src={avatar} alt="" className="subs-ch-avatar" />
+                  {hasNew && <span className="subs-ch-dot" />}
+                </div>
+                <span className="subs-ch-label">
+                  {channel.fullname || channel.username}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── BODY: content grid ── */}
+      <div className="subs-body">
         <div className="subs-content">
 
           {loading ? (

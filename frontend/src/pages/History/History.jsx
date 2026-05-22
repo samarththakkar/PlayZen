@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { History as HistoryIcon, Clock, Trash2, Search, Loader2, Play } from 'lucide-react';
+import { useNavigate, useNavigationType } from 'react-router-dom';
+import { History as HistoryIcon, Clock, Trash2, Search, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import { getAvatarUrl } from '../../utils/avatarUtils';
+import VideoCard from '../../components/video/VideoCard';
 import './History.css';
 
 const formatTimeAgo = (date) => {
@@ -32,6 +32,38 @@ const History = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
+
+  const navigationType = useNavigationType();
+
+  // Save scroll Y position on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('history_scroll_y', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Clear scroll position on fresh PUSH navigation
+  useEffect(() => {
+    if (navigationType === 'PUSH') {
+      sessionStorage.removeItem('history_scroll_y');
+    }
+  }, [navigationType]);
+
+  // Restore scroll position when loading completes
+  useEffect(() => {
+    if (!loading && navigationType === 'POP') {
+      const savedScrollY = sessionStorage.getItem('history_scroll_y');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [loading, navigationType]);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -72,15 +104,7 @@ const History = () => {
       {/* ── HEADER ── */}
       <div className="history-header">
         <div className="history-header-left">
-          <div className="history-header-icon">
-            <HistoryIcon size={22} />
-          </div>
-          <div>
-            <h1 className="history-title">Watch History</h1>
-            <p className="history-subtitle">
-              {loading ? 'Loading...' : `${history.length} video${history.length !== 1 ? 's' : ''} watched`}
-            </p>
-          </div>
+          <h1 className="history-title">Watch History</h1>
         </div>
         {history.length > 0 && (
           <button
@@ -131,45 +155,9 @@ const History = () => {
       {/* ── HISTORY GRID ── */}
       {!loading && history.length > 0 && (
         <div className="history-grid">
-          {history.map((entry) => {
-            const video = entry.video;
-            if (!video) return null;
-            const owner = video.owner || {};
-            const channelName = owner.fullname || owner.username || 'Unknown';
-
-            return (
-              <div
-                key={entry._id}
-                className="history-card"
-                onClick={() => navigate(`/watch/${video._id}`)}
-              >
-                <div className="history-card-thumb-wrapper">
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="history-card-thumb"
-                  />
-                  <div className="history-card-play-overlay">
-                    <Play size={22} fill="#fff" />
-                  </div>
-                  {video.duration && (
-                    <span className="history-card-duration">
-                      {Math.floor(video.duration / 60)}:{String(Math.floor(video.duration % 60)).padStart(2, '0')}
-                    </span>
-                  )}
-                </div>
-                <div className="history-card-info">
-                  <h3 className="history-card-title">{video.title}</h3>
-                  <p className="history-card-channel">{channelName}</p>
-                  <div className="history-card-meta">
-                    <span>{formatViews(video.views)}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{formatTimeAgo(entry.watchedAt)}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {history.map((entry) => (
+            entry?.video ? <VideoCard key={entry._id} video={entry.video} /> : null
+          ))}
         </div>
       )}
     </div>

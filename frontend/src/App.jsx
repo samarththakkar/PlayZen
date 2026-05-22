@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
 import MainLayout    from './layouts/MainLayout';
 import AuthLayout    from './layouts/AuthLayout';
@@ -71,6 +72,32 @@ const NotFound = () => (
 function App() {
   return (
     <div style={{ margin: 0, padding: 0, background: '#080810', minHeight: '100vh' }}>
+      <Toaster 
+        position="top-right" 
+        containerStyle={{ zIndex: 999999 }}
+        toastOptions={{
+          style: {
+            background: '#16161a',
+            color: '#fff',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            fontSize: '14px',
+            borderRadius: '12px',
+            fontFamily: 'sans-serif',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <Routes>
 
         {/* ── MAIN APP (with Header + Sidebar) ── */}

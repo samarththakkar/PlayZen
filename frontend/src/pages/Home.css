@@ -559,9 +559,9 @@
         /* Buttons sit side by side */
     }
 
-    /* Grid becomes 2 columns */
+    /* Grid becomes 3 columns */
     .grid-container {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 
     /* Hide the mobile bottom navigation entirely! */

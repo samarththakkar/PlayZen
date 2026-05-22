@@ -128,24 +128,37 @@ videoSchema.statics.getPaginatedStudioVideos = function ({ ownerId, page, limit 
 
 videoSchema.statics.getPersonalizedFeed = function ({
     seenVideoIds = [],
+    notInterestedVideoIds = [],
+    blockedChannelIds = [],
     topChannels = [],
     topCategories = [],
     tagRegex = null,
     skip = 0,
     limit = 10
 }) {
+    const excludeVideoIds = [
+        ...seenVideoIds,
+        ...notInterestedVideoIds
+    ].map((id) => new mongoose.Types.ObjectId(id));
+
+    const matchStage = {
+        isPublished: true,
+        _id: { $nin: excludeVideoIds },
+        $or: [
+            { isShort: false },
+            { isShort: { $exists: false } }
+        ]
+    };
+
+    if (blockedChannelIds.length > 0) {
+        matchStage.owner = {
+            $nin: blockedChannelIds.map((id) => new mongoose.Types.ObjectId(id))
+        };
+    }
+
     return this.aggregate([
         {
-            $match: {
-                isPublished: true,
-                _id: {
-                    $nin: seenVideoIds.map((id) => new mongoose.Types.ObjectId(id))
-                },
-                $or: [
-                    { isShort: false },
-                    { isShort: { $exists: false } }
-                ]
-            }
+            $match: matchStage
         },
         {
             $addFields: {
@@ -207,6 +220,7 @@ videoSchema.statics.getPersonalizedFeed = function ({
             $project: {
                 title: 1,
                 thumbnail: 1,
+                videoFile: 1,
                 duration: 1,
                 views: 1,
                 slug: 1,

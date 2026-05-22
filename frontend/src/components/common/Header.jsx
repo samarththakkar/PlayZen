@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Menu, Search, Upload, Bell, ArrowLeft, User, LogOut, Video, Settings, PlusCircle, Plus, Clock, X } from 'lucide-react';
+import { Menu, Search, Upload, Bell, ArrowLeft, User, LogOut, Video, Settings, PlusCircle, Plus, Clock, X, MessageSquare, Trash2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useSearch from '../../hooks/useSearch';
 import useNotifications from '../../hooks/useNotifications';
 import { getAvatarUrl } from '../../utils/avatarUtils';
+import { getNotifications, deleteNotificationById } from '../../services/notification.service';
 import './Header.css';
 
 const Header = ({ toggleSidebar, isSidebarOpen }) => {
@@ -53,7 +54,91 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
   }, []);
 
   const { user, logout } = useAuth();
-  const { unreadCount } = useNotifications(user?._id || user?.id);
+  const { unreadCount, markRead, markAllRead, setUnreadCount } = useNotifications(user?._id || user?.id);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  useEffect(() => {
+    if (isNotifOpen && user) {
+      const fetchNotifications = async () => {
+        setNotifLoading(true);
+        try {
+          const { data } = await getNotifications();
+          if (data) {
+            setNotifications(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch notifications", error);
+        } finally {
+          setNotifLoading(false);
+        }
+      };
+      fetchNotifications();
+    }
+  }, [isNotifOpen, user]);
+
+  useEffect(() => {
+    const handleNewNotification = (e) => {
+      const newNotif = e.detail;
+      setNotifications((prev) => [newNotif, ...prev]);
+    };
+    window.addEventListener("new-notification-received", handleNewNotification);
+    return () => window.removeEventListener("new-notification-received", handleNewNotification);
+  }, []);
+
+  const handleNotificationClick = async (notif) => {
+    setIsNotifOpen(false);
+    if (!notif.isRead) {
+      try {
+        await markRead(notif._id);
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === notif._id ? { ...n, isRead: true } : n))
+        );
+      } catch (error) {
+        console.error("Failed to mark notification as read", error);
+      }
+    }
+    if (notif.type === "new_video" && notif.video?._id) {
+      navigate(`/watch/${notif.video._id}`);
+    } else if (notif.type === "new_tweet" && notif.tweet?.owner?._id) {
+      navigate(`/profile/${notif.tweet.owner._id}`);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (error) {
+      console.error("Failed to mark all notifications as read", error);
+    }
+  };
+
+  const handleDeleteNotification = async (e, notifId, wasUnread) => {
+    e.stopPropagation();
+    try {
+      await deleteNotificationById(notifId);
+      setNotifications((prev) => prev.filter((n) => n._id !== notifId));
+      if (wasUnread) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error("Failed to delete notification", error);
+    }
+  };
+
+  const timeAgo = (dateString) => {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffMs = now - past;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  };
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
@@ -251,15 +336,77 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
             <div className="dropdown-menu notification-dropdown">
               <div className="dropdown-header notif-header">
                 <span className="dropdown-name">Notifications</span>
-                <button className="mark-all-read-btn">Mark all read</button>
+                {notifications.length > 0 && (
+                  <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
+                    Mark all read
+                  </button>
+                )}
               </div>
-              <div className="notif-empty-state">
-                <div className="notif-empty-icon">
-                  <Bell size={32} />
+              
+              {notifLoading ? (
+                <div className="notif-loading">
+                  <div className="notif-spinner"></div>
                 </div>
-                <p className="notif-empty-title">All caught up!</p>
-                <p className="notif-empty-text">No new notifications at the moment.</p>
-              </div>
+              ) : notifications.length > 0 ? (
+                <div className="notif-list">
+                  {notifications.map((notif) => {
+                    const hasVideo = notif.type === "new_video" && notif.video;
+                    const hasTweet = notif.type === "new_tweet" && notif.tweet;
+                    const owner = hasVideo ? notif.video.owner : hasTweet ? notif.tweet.owner : null;
+                    const displayAvatar = getAvatarUrl(owner, owner?.fullName || owner?.username || "C");
+                    
+                    let message = "";
+                    if (hasVideo) {
+                      message = `uploaded a new video: "${notif.video.title}"`;
+                    } else if (hasTweet) {
+                      const snippet = notif.tweet.content?.length > 45 
+                        ? notif.tweet.content.substring(0, 45) + "..." 
+                        : notif.tweet.content;
+                      message = `posted a tweet: "${snippet}"`;
+                    }
+
+                    return (
+                      <div 
+                        key={notif._id} 
+                        className={`notif-item ${!notif.isRead ? 'unread' : ''}`}
+                        onClick={() => handleNotificationClick(notif)}
+                      >
+                        <div className="notif-avatar-wrapper">
+                          <img src={displayAvatar} alt="Owner" className="notif-avatar" />
+                          <span className="notif-icon-badge">
+                            {hasVideo ? <Video size={10} /> : <MessageSquare size={10} />}
+                          </span>
+                        </div>
+                        <div className="notif-content-wrapper">
+                          <p className="notif-text">
+                            <span className="notif-owner-name">{owner?.fullName || owner?.username || "Someone"}</span>
+                            {" "}{message}
+                          </p>
+                          <span className="notif-time">{timeAgo(notif.createdAt)}</span>
+                        </div>
+                        <div className="notif-actions">
+                          {!notif.isRead && <span className="notif-unread-dot"></span>}
+                          <button 
+                            className="notif-delete-btn" 
+                            onClick={(e) => handleDeleteNotification(e, notif._id, !notif.isRead)}
+                            title="Dismiss"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="notif-empty-state">
+                  <div className="notif-empty-icon">
+                    <Bell size={32} />
+                  </div>
+                  <p className="notif-empty-title">All caught up!</p>
+                  <p className="notif-empty-text">No new notifications at the moment.</p>
+                </div>
+              )}
             </div>
           )}
         </div>

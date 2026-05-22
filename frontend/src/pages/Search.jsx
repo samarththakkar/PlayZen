@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigationType } from 'react-router-dom';
 import api from '../services/api';
 import VideoCard from '../components/video/VideoCard';
 import Skeleton from '../components/ui/Skeleton';
@@ -15,6 +15,31 @@ const Search = () => {
   const [suggestedVideos, setSuggestedVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const navigationType = useNavigationType();
+
+  // Save scroll Y position on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem(`search_scroll_y_${query}`, window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [query]);
+
+  // Restore scroll position when videos finish loading
+  useEffect(() => {
+    if (!loading && navigationType === 'POP') {
+      const savedScrollY = sessionStorage.getItem(`search_scroll_y_${query}`);
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [loading, navigationType, query]);
 
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -59,16 +84,6 @@ const Search = () => {
 
   return (
     <div className="search-page-container">
-      {/* Hide the top banner entirely if 0 results match, per user request */}
-      {!loading && !error && videos.length > 0 && (
-          <div className="search-header-banner">
-            <h1 className="search-title">
-              Results for <span className="highlight">"{query}"</span>
-            </h1>
-            <p className="search-count">{videos.length} videos found</p>
-          </div>
-      )}
-
       {/* States */}
       {loading ? (
         <div className="video-grid search-grid">
@@ -94,6 +109,17 @@ const Search = () => {
       ) : videos.length === 0 ? (
         // The revamped "Empty State" showcasing Suggestions rather than "0 results found"
         <div className="search-suggestions-container">
+           {query.trim() && (
+             <div className="search-no-results-banner">
+               <h2 className="search-no-results-title">
+                 No results found for <span className="highlight">"{query}"</span>
+               </h2>
+               <p className="search-no-results-text">
+                 We couldn't find any videos matching your search query. Try checking your spelling, using different keywords, or check out these recommended videos:
+               </p>
+             </div>
+           )}
+
            <div className="suggestions-header" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Compass size={28} color="var(--accent-color)" />
               <h2 style={{ margin: 0, fontFamily: 'Orbitron, sans-serif', fontSize: '1.5rem', color: 'var(--text-primary)' }}>

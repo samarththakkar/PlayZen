@@ -2,6 +2,7 @@ import {Notification} from "../models/notifications.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import {Subscription} from "../models/subscription.model.js";
+import { sendSocketNotification } from "../socket.js";
 export const getUserNotifications = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
     if (!userId) {
@@ -9,14 +10,27 @@ export const getUserNotifications = asyncHandler(async (req, res) => {
     }
     const notifications = await Notification
     .find({ user: userId })
-    .populate("video")
-    .populate("tweet")
+    .populate({
+        path: "video",
+        select: "title thumbnail owner",
+        populate: {
+            path: "owner",
+            select: "username fullName avatar"
+        }
+    })
+    .populate({
+        path: "tweet",
+        select: "content owner",
+        populate: {
+            path: "owner",
+            select: "username fullName avatar"
+        }
+    })
     .sort({ createdAt : -1})
     .limit(20);
     
     res.status(200).json({ notifications });
-}
-);
+});
 export const getUnreadCount = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
     if (!userId) {
@@ -88,7 +102,32 @@ export const sendNotification = async (channelId, type, videoId = null, tweetId 
         });
 
         // Save all notifications at once
-        await Notification.insertMany(notifications);
+        const savedNotifications = await Notification.insertMany(notifications);
+
+        // Populate notifications and send them over socket
+        for (const notif of savedNotifications) {
+            const populated = await Notification.findById(notif._id)
+                .populate({
+                    path: "video",
+                    select: "title thumbnail owner",
+                    populate: {
+                        path: "owner",
+                        select: "username fullName avatar"
+                    }
+                })
+                .populate({
+                    path: "tweet",
+                    select: "content owner",
+                    populate: {
+                        path: "owner",
+                        select: "username fullName avatar"
+                    }
+                });
+
+            if (populated) {
+                sendSocketNotification(notif.user, populated);
+            }
+        }
 
     } catch (error) {
         // Don't crash the main request if notification fails

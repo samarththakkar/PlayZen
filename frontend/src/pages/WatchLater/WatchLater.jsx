@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useNavigationType } from 'react-router-dom';
 import { Clock, Search, Loader2, Play, Bookmark, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import VideoCard from '../../components/video/VideoCard';
 import './WatchLater.css';
 
 const formatTimeAgo = (date) => {
@@ -31,6 +32,38 @@ const WatchLater = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
+
+  const navigationType = useNavigationType();
+
+  // Save scroll Y position on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('wl_scroll_y', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Clear scroll position on fresh PUSH navigation
+  useEffect(() => {
+    if (navigationType === 'PUSH') {
+      sessionStorage.removeItem('wl_scroll_y');
+    }
+  }, [navigationType]);
+
+  // Restore scroll position when loading completes
+  useEffect(() => {
+    if (!loading && navigationType === 'POP') {
+      const savedScrollY = sessionStorage.getItem('wl_scroll_y');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [loading, navigationType]);
 
   useEffect(() => {
     const fetchWatchLater = async () => {
@@ -71,15 +104,7 @@ const WatchLater = () => {
       {/* ── HEADER ── */}
       <div className="wl-header">
         <div className="wl-header-left">
-          <div className="wl-header-icon">
-            <Bookmark size={22} />
-          </div>
-          <div>
-            <h1 className="wl-title">Watch Later</h1>
-            <p className="wl-subtitle">
-              {loading ? 'Loading...' : `${videos.length} video${videos.length !== 1 ? 's' : ''} saved`}
-            </p>
-          </div>
+          <h1 className="wl-title">Watch Later</h1>
         </div>
         {videos.length > 0 && (
           <button
@@ -132,44 +157,9 @@ const WatchLater = () => {
       {/* ── VIDEO GRID ── */}
       {!loading && videos.length > 0 && (
         <div className="wl-grid">
-          {videos.map((video) => {
-            if (!video) return null;
-            const owner = video.owner || {};
-            const channelName = owner.fullname || owner.username || 'Unknown';
-
-            return (
-              <div
-                key={video._id}
-                className="wl-card"
-                onClick={() => navigate(`/watch/${video._id}`)}
-              >
-                <div className="wl-card-thumb-wrapper">
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="wl-card-thumb"
-                  />
-                  <div className="wl-card-play-overlay">
-                    <Play size={22} fill="#fff" />
-                  </div>
-                  {video.duration && (
-                    <span className="wl-card-duration">
-                      {Math.floor(video.duration / 60)}:{String(Math.floor(video.duration % 60)).padStart(2, '0')}
-                    </span>
-                  )}
-                </div>
-                <div className="wl-card-info">
-                  <h3 className="wl-card-title">{video.title}</h3>
-                  <p className="wl-card-channel">{channelName}</p>
-                  <div className="wl-card-meta">
-                    <span>{formatViews(video.views)}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{formatTimeAgo(video.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {videos.map((video) => (
+            video ? <VideoCard key={video._id} video={video} /> : null
+          ))}
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "./config/passport.js";
+import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
 
@@ -57,6 +58,7 @@ import searchRouter from "./routes/search.routes.js";
 import watchHistoryRouter from "./routes/watchHistory.routes.js";
 import watchLaterRouter from "./routes/watchLater.routes.js";
 import healthcheckRouter from "./routes/healthcheck.routes.js";
+import settingsRouter from "./routes/settings.routes.js";
 
 // API Routes
 app.use("/healthcheck", healthcheckRouter);
@@ -74,15 +76,60 @@ app.use("/api/v1/recommendations", recommendationRouter);
 app.use("/api/v1/search", searchRouter);
 app.use("/api/v1/watch-history", watchHistoryRouter);
 app.use("/api/v1/watch-later", watchLaterRouter);
+app.use("/api/v1/settings", settingsRouter);
 
 // ================= ERROR HANDLER =================
 
 app.use((err, req, res, next) => {
-  console.error("Error:", err.message);
+  // Always log the full developer error stack in the server console
+  console.error("Server Error Hook:", err);
 
-  res.status(err.statusCode || 500).json({
+  let statusCode = err.statusCode || 500;
+  let message = err.message || "Something went wrong. Please try again.";
+
+  // Handle Mongoose validation errors
+  if (err.name === "ValidationError") {
+    statusCode = 400;
+    const messages = Object.values(err.errors).map(e => e.message);
+    message = messages.join(", ");
+  }
+
+  // Handle MongoDB duplicate key error (11000)
+  if (err.code === 11000) {
+    statusCode = 409;
+    const field = Object.keys(err.keyValue || {})[0] || "field";
+    const capitalisedField = field.charAt(0).toUpperCase() + field.slice(1);
+    message = `${capitalisedField} is already registered. Please try another one.`;
+  }
+
+  // Handle Mongoose CastError (invalid ObjectId)
+  if (err.name === "CastError") {
+    statusCode = 400;
+    message = `Invalid format for resource identifier.`;
+  }
+
+  // Handle expired JWT
+  if (err.name === "TokenExpiredError") {
+    statusCode = 401;
+    message = "Your session has expired. Please log in again.";
+  }
+
+  // Handle invalid JWT signature/format
+  if (err.name === "JsonWebTokenError") {
+    statusCode = 401;
+    message = "Authentication failed. Invalid login session.";
+  }
+
+  // If it's a generic unhandled system error (not an instance of ApiError/custom code),
+  // override with a general friendly message to avoid exposing raw stack or db details to the user.
+  const isCustomError = err instanceof ApiError || err.statusCode !== undefined;
+  if (!isCustomError && statusCode === 500) {
+    message = "An unexpected server error occurred. Please try again later.";
+  }
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || "Internal Server Error",
+    message: message,
     errors: err.errors || [],
   });
 });

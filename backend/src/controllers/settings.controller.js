@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Settings } from "../models/settings.model.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { sendOTP } from "../utils/brevoOtp.js";
 
 // Get settings for logged in user
 const getSettings = asyncHandler(async (req, res) => {
@@ -67,11 +68,30 @@ const updatePrivacySettings = asyncHandler(async (req, res) => {
     );
 });
 
-// Update personal info (displayName, bio, avatar, coverImage)
-const updatePersonalInfo = asyncHandler(async (req, res) => {
-    const { fullName, bio } = req.body;
+// Update playback settings
+const updatePlaybackSettings = asyncHandler(async (req, res) => {
+    const { hoverAutoplay } = req.body;
 
-    if (!fullName && !bio && !req.files?.avatar && !req.files?.coverImage) {
+    const settings = await Settings.findOneAndUpdate(
+        { user: req.user._id },
+        {
+            $set: {
+                ...(hoverAutoplay !== undefined && { "playback.hoverAutoplay": hoverAutoplay }),
+            }
+        },
+        { new: true, upsert: true }
+    );
+
+    return res.status(200).json(
+        new ApiResponse(200, settings, "Playback settings updated successfully")
+    );
+});
+
+// Update personal info (displayName, bio, avatar, coverImage, username)
+const updatePersonalInfo = asyncHandler(async (req, res) => {
+    const { fullName, username, bio } = req.body;
+
+    if (!fullName && !username && !bio && !req.files?.avatar && !req.files?.coverImage) {
         throw new ApiError(400, "At least one field is required to update");
     }
 
@@ -79,6 +99,17 @@ const updatePersonalInfo = asyncHandler(async (req, res) => {
 
     if (fullName) updateData.fullname = fullName.trim();
     if (bio !== undefined) updateData.bio = bio.trim();
+
+    if (username) {
+        const normalizedUsername = username.trim().toLowerCase();
+        if (normalizedUsername !== req.user.username) {
+            const existedUser = await User.findOne({ username: normalizedUsername });
+            if (existedUser) {
+                throw new ApiError(409, "This username is already taken. Please try another one.");
+            }
+            updateData.username = normalizedUsername;
+        }
+    }
 
     // Handle avatar upload
     if (req.files?.avatar?.[0]) {
@@ -156,16 +187,17 @@ const changeEmail = asyncHandler(async (req, res) => {
         throw new ApiError(409, "Email already in use");
     }
 
+    // Generate and send OTP to newEmail using sendOTP utility
+    const otp = await sendOTP(newEmail);
+
     // Store pending email on user
     await User.findByIdAndUpdate(req.user._id, {
         $set: {
             pendingEmail: newEmail,
-            emailChangeToken: Math.floor(100000 + Math.random() * 900000).toString(),
+            emailChangeToken: otp,
             emailChangeTokenExpiry: new Date(Date.now() + 10 * 60 * 1000)
         }
     });
-
-    // TODO: send OTP to newEmail using your sendOTP utility
 
     return res.status(200).json(
         new ApiResponse(200, { newEmail }, "OTP sent to new email")
@@ -208,6 +240,7 @@ export {
     getSettings,
     updateNotificationSettings,
     updatePrivacySettings,
+    updatePlaybackSettings,
     updatePersonalInfo,
     changePassword,
     changeEmail,

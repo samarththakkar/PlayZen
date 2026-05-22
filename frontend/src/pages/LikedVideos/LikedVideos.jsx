@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useNavigationType } from 'react-router-dom';
 import { ThumbsUp, Clock, Search, Loader2, Play, Heart } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import VideoCard from '../../components/video/VideoCard';
 import './LikedVideos.css';
 
 const formatTimeAgo = (date) => {
@@ -31,6 +32,38 @@ const LikedVideos = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const navigationType = useNavigationType();
+
+  // Save scroll Y position on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('liked_scroll_y', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Clear scroll position on fresh PUSH navigation
+  useEffect(() => {
+    if (navigationType === 'PUSH') {
+      sessionStorage.removeItem('liked_scroll_y');
+    }
+  }, [navigationType]);
+
+  // Restore scroll position when loading completes
+  useEffect(() => {
+    if (!loading && navigationType === 'POP') {
+      const savedScrollY = sessionStorage.getItem('liked_scroll_y');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [loading, navigationType]);
+
   useEffect(() => {
     const fetchLikedVideos = async () => {
       if (!user) {
@@ -57,15 +90,7 @@ const LikedVideos = () => {
       {/* ── HEADER ── */}
       <div className="liked-header">
         <div className="liked-header-left">
-          <div className="liked-header-icon">
-            <ThumbsUp size={22} />
-          </div>
-          <div>
-            <h1 className="liked-title">Liked Videos</h1>
-            <p className="liked-subtitle">
-              {loading ? 'Loading...' : `${videos.length} video${videos.length !== 1 ? 's' : ''} liked`}
-            </p>
-          </div>
+          <h1 className="liked-title">Liked Videos</h1>
         </div>
       </div>
 
@@ -108,44 +133,9 @@ const LikedVideos = () => {
       {/* ── VIDEO GRID ── */}
       {!loading && videos.length > 0 && (
         <div className="liked-grid">
-          {videos.map((video) => {
-            if (!video) return null;
-            const owner = video.owner || {};
-            const channelName = owner.fullname || owner.username || 'Unknown';
-
-            return (
-              <div
-                key={video._id}
-                className="liked-card"
-                onClick={() => navigate(`/watch/${video._id}`)}
-              >
-                <div className="liked-card-thumb-wrapper">
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="liked-card-thumb"
-                  />
-                  <div className="liked-card-play-overlay">
-                    <Play size={22} fill="#fff" />
-                  </div>
-                  {video.duration && (
-                    <span className="liked-card-duration">
-                      {Math.floor(video.duration / 60)}:{String(Math.floor(video.duration % 60)).padStart(2, '0')}
-                    </span>
-                  )}
-                </div>
-                <div className="liked-card-info">
-                  <h3 className="liked-card-title">{video.title}</h3>
-                  <p className="liked-card-channel">{channelName}</p>
-                  <div className="liked-card-meta">
-                    <span>{formatViews(video.views)}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{formatTimeAgo(video.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {videos.map((video) => (
+            video ? <VideoCard key={video._id} video={video} /> : null
+          ))}
         </div>
       )}
     </div>
