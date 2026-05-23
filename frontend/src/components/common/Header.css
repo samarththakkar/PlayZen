@@ -864,15 +864,15 @@
    ========================================================================== */
 @media (max-width: 767px) {
     .hamburger-btn {
-        display: none !important;
-    }
-
-    .mobile-upload-btn {
         display: flex !important;
     }
 
-    .profile-avatar-btn {
+    .mobile-upload-btn {
         display: none !important;
+    }
+
+    .profile-avatar-btn {
+        display: flex !important;
     }
 
     .brand-name {

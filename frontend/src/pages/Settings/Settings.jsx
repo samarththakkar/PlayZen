@@ -12,12 +12,34 @@ import {
   Lock, 
   Eye, 
   Check,
-  Loader2
+  Loader2,
+  Keyboard
 } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 import * as settingsService from '../../services/settings.service';
 import toast from 'react-hot-toast';
 import './Settings.css';
+
+const SHORTCUT_LABELS = {
+  playPause: 'Play / Pause',
+  fullscreen: 'Toggle Fullscreen',
+  mute: 'Mute / Unmute',
+  volumeUp: 'Volume Up',
+  volumeDown: 'Volume Down',
+  seekForward: 'Seek Forward (10s)',
+  seekBackward: 'Seek Backward (10s)',
+  pip: 'Picture-in-Picture',
+  speedMenu: 'Toggle Playback Speed Menu'
+};
+
+const formatKeyName = (key) => {
+  if (key === ' ') return 'Space';
+  if (key === 'ArrowUp') return 'Up Arrow';
+  if (key === 'ArrowDown') return 'Down Arrow';
+  if (key === 'ArrowLeft') return 'Left Arrow';
+  if (key === 'ArrowRight') return 'Right Arrow';
+  return key;
+};
 
 const Settings = () => {
   const { user, updateUserSession } = useContext(AuthContext);
@@ -27,6 +49,55 @@ const Settings = () => {
 
   // Active tab state
   const [activeTab, setActiveTab] = useState('account');
+
+  // Custom Keyboard Shortcuts state
+  const [shortcuts, setShortcuts] = useState(() => {
+    const saved = localStorage.getItem('playzen_keyboard_shortcuts');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      playPause: 'k',
+      fullscreen: 'f',
+      mute: 'm',
+      volumeUp: 'ArrowUp',
+      volumeDown: 'ArrowDown',
+      seekForward: 'ArrowRight',
+      seekBackward: 'ArrowLeft',
+      pip: 'p',
+      speedMenu: 's'
+    };
+  });
+
+  const [activeShortcutEdit, setActiveShortcutEdit] = useState(null);
+
+  // Key Recording Listener Effect
+  useEffect(() => {
+    if (!activeShortcutEdit) return;
+
+    const handleKeyDown = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const pressedKey = e.key;
+
+      if (pressedKey === 'Escape') {
+        setActiveShortcutEdit(null);
+        return;
+      }
+
+      const updated = { ...shortcuts, [activeShortcutEdit]: pressedKey };
+      setShortcuts(updated);
+      localStorage.setItem('playzen_keyboard_shortcuts', JSON.stringify(updated));
+      toast.success(`Shortcut for ${SHORTCUT_LABELS[activeShortcutEdit]} updated to "${formatKeyName(pressedKey)}"!`);
+      setActiveShortcutEdit(null);
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [activeShortcutEdit, shortcuts]);
 
   // Loading states
   const [loadingSettings, setLoadingSettings] = useState(true);
@@ -392,6 +463,13 @@ const Settings = () => {
               <Play size={18} />
               <span>Playback</span>
             </li>
+            <li 
+              className={activeTab === 'shortcuts' ? 'active' : ''} 
+              onClick={() => setActiveTab('shortcuts')}
+            >
+              <Keyboard size={18} />
+              <span>Shortcuts</span>
+            </li>
           </ul>
         </div>
 
@@ -739,6 +817,83 @@ const Settings = () => {
                       <span className="slider round"></span>
                     </label>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ────────────────────────────────────────────────────────
+              5. SHORTCUTS TAB
+          ──────────────────────────────────────────────────────── */}
+          {activeTab === 'shortcuts' && (
+            <div className="settings-section">
+              <div className="settings-card">
+                <h2>Keyboard Shortcuts</h2>
+                <p className="settings-muted">Customize keyboard shortcuts for the video watch page controls. Click Change and press any key to record a new hotkey.</p>
+
+                <div className="shortcuts-table-container">
+                  <table className="shortcuts-table">
+                    <thead>
+                      <tr>
+                        <th>Action</th>
+                        <th>Key Binding</th>
+                        <th>Control</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.keys(SHORTCUT_LABELS).map((actionKey) => {
+                        const isEditingThis = activeShortcutEdit === actionKey;
+                        const currentBinding = shortcuts[actionKey];
+
+                        return (
+                          <tr key={actionKey}>
+                            <td className="shortcut-action-name">
+                              {SHORTCUT_LABELS[actionKey]}
+                            </td>
+                            <td className="shortcut-binding-cell">
+                              <span className={`shortcut-key-badge ${isEditingThis ? 'recording' : ''}`}>
+                                {isEditingThis ? 'Press any key...' : formatKeyName(currentBinding)}
+                              </span>
+                            </td>
+                            <td>
+                              <button 
+                                type="button"
+                                className="shortcut-edit-btn"
+                                onClick={() => setActiveShortcutEdit(isEditingThis ? null : actionKey)}
+                              >
+                                {isEditingThis ? 'Cancel' : 'Change'}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="card-actions justify-between mt-2">
+                  <button 
+                    type="button" 
+                    className="settings-btn-cancel"
+                    onClick={() => {
+                      const defaults = {
+                        playPause: 'k',
+                        fullscreen: 'f',
+                        mute: 'm',
+                        volumeUp: 'ArrowUp',
+                        volumeDown: 'ArrowDown',
+                        seekForward: 'ArrowRight',
+                        seekBackward: 'ArrowLeft',
+                        pip: 'p',
+                        speedMenu: 's'
+                      };
+                      setShortcuts(defaults);
+                      localStorage.setItem('playzen_keyboard_shortcuts', JSON.stringify(defaults));
+                      toast.success('Keyboard shortcuts reset to defaults!');
+                    }}
+                  >
+                    Reset to Defaults
+                  </button>
                 </div>
               </div>
             </div>

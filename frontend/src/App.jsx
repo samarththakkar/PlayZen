@@ -16,6 +16,7 @@ import History       from './pages/History/History';
 import WatchLater    from './pages/WatchLater/WatchLater';
 import LikedVideos   from './pages/LikedVideos/LikedVideos';
 import Settings      from './pages/Settings/Settings';
+import Playlist      from './pages/Playlist/Playlist';
 
 import Login          from './pages/Auth/Login';
 import Signup         from './pages/Auth/Signup';
@@ -112,6 +113,7 @@ function App() {
           <Route path="/watch-later"    element={<WatchLater />} />
           <Route path="/liked-videos"   element={<LikedVideos />} />
           <Route path="/settings"       element={<Settings />} />
+          <Route path="/playlist/:playlistId" element={<Playlist />} />
           {/* Profile — own channel or by username */}
           <Route path="/profile"            element={<Profile />} />
           <Route path="/channel"            element={<Profile />} />

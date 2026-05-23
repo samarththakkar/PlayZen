@@ -45,28 +45,28 @@
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
-    padding: 0 2rem;
+    padding: 1.5rem 2rem;
     display: flex;
-    align-items: flex-end;
-    margin-top: -60px;
-    /* Overlap the cover */
+    align-items: flex-start;
     position: relative;
     z-index: 10;
-    gap: 1.5rem;
+    gap: 2rem;
     padding-bottom: 2rem;
+    background-color: #0a0a0a !important;
 }
 
 .profile-avatar-wrapper {
-    width: 120px;
-    height: 120px;
+    width: 128px;
+    height: 128px;
     border-radius: 50%;
-    border: 4px solid var(--bg-color);
+    border: 4px solid #0a0a0a;
     /* Match background to carve out */
     background: var(--surface-color) !important;
     background-color: var(--surface-color) !important;
     overflow: hidden;
     flex-shrink: 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    margin-top: -64px; /* Pull ONLY avatar up to overlap banner slightly */
 }
 
 .profile-avatar-img {
@@ -122,8 +122,11 @@
     gap: 1.5rem;
 }
 
-.profile-actions {
+.profile-actions, .profile-actions-wrapper {
     padding-bottom: 0.5rem;
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
 }
 
 .profile-btn {
@@ -150,15 +153,18 @@
 }
 
 .profile-btn-edit {
-    background: var(--surface-color) !important;
-    background-color: var(--surface-color) !important;
+    background: #ff5555 !important;
+    background-color: #ff5555 !important;
     color: #ffffff !important;
-    border: 1px solid var(--border-color);
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(255, 85, 85, 0.2);
 }
 
 .profile-btn-edit:hover {
-    background: var(--surface-hover-color) !important;
-    border-color: #ffffff;
+    background: #e53935 !important;
+    background-color: #e53935 !important;
+    box-shadow: 0 6px 16px rgba(255, 85, 85, 0.4);
+    transform: translateY(-1px);
 }
 
 /* 3. Navigation Tabs */
@@ -254,22 +260,25 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        margin-top: -50px;
-        padding: 0 1rem 1rem 1rem;
+        margin-top: 0;
+        padding: 1rem;
+        gap: 1rem;
     }
 
     .profile-avatar-wrapper {
-        width: 100px;
-        height: 100px;
+        width: 96px;
+        height: 96px;
+        margin-top: -48px; /* Pulled up slightly on mobile cover banner */
     }
 
     .profile-stats {
         justify-content: center;
     }
 
-    .profile-actions {
+    .profile-actions, .profile-actions-wrapper {
         width: 100%;
         margin-top: 1rem;
+        justify-content: center;
     }
 
     .profile-btn {

@@ -309,10 +309,6 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
           <Search size={22} />
         </button>
 
-        {/* Mobile Upload Icon */}
-        <button className="header-icon-btn mobile-upload-btn" onClick={() => navigate('/upload')}>
-          <Upload size={20} />
-        </button>
 
         {/* Desktop Upload button */}
         <button className="desktop-upload-btn" onClick={() => navigate('/upload')}>

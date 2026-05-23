@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useNavigationType } from 'react-router-dom';
-import { createPortal } from 'react-dom';
+import { useParams, useNavigate, useNavigationType, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api'; // Or axios directly depending on your setup
 import VideoCard from '../../components/video/VideoCard';
@@ -13,6 +12,7 @@ const Profile = () => {
   const { username } = useParams(); // If viewing someone else /channel/:username
   const { user } = useAuth(); // Current logged-in user
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState('Videos');
   const [profileData, setProfileData] = useState(null);
@@ -21,13 +21,14 @@ const Profile = () => {
   const [playlists, setPlaylists] = useState([]);
   const [playlistsLoading, setPlaylistsLoading] = useState(false);
   const [playlistsError, setPlaylistsError] = useState(null);
-  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
 
   const navigationType = useNavigationType();
 
   // Reset or restore active tab based on navigation type
   useEffect(() => {
-    if (navigationType === 'PUSH') {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    } else if (navigationType === 'PUSH') {
       sessionStorage.removeItem('profile_scroll_y');
       sessionStorage.removeItem('profile_active_tab');
     } else if (navigationType === 'POP') {
@@ -36,7 +37,7 @@ const Profile = () => {
         setActiveTab(savedTab);
       }
     }
-  }, [navigationType]);
+  }, [navigationType, location]);
 
   // Save active tab on change
   useEffect(() => {
@@ -181,6 +182,7 @@ const Profile = () => {
                 <>
                     <Skeleton type="title" style={{ width: '250px', height: '2rem', marginBottom: '0.5rem' }} />
                     <Skeleton type="text" style={{ width: '150px', height: '1rem', marginBottom: '1rem' }} />
+                    <Skeleton type="button" style={{ width: '120px', height: '36px', borderRadius: '30px', marginTop: '1rem' }} />
                 </>
             ) : (
                 <>
@@ -192,24 +194,21 @@ const Profile = () => {
                             <span><strong>{videos.length || 0}</strong> videos</span>
                         </div>
                     </div>
+                    <div className="profile-actions-wrapper">
+                        {isOwnProfile ? (
+                            <button className="profile-btn profile-btn-edit" onClick={() => navigate('/settings')}>
+                                Edit Profile
+                            </button>
+                        ) : (
+                            <button 
+                                className={`profile-btn ${isCurrentlySubscribed ? 'profile-btn-edit' : 'profile-btn-subscribe'}`}
+                                onClick={handleSubscribe}
+                            >
+                                {isCurrentlySubscribed ? 'Subscribed' : 'Subscribe'}
+                            </button>
+                        )}
+                    </div>
                 </>
-            )}
-        </div>
-
-        <div className="profile-actions">
-            {!loading && (
-                isOwnProfile ? (
-                    <button className="profile-btn profile-btn-edit">
-                        Edit Profile
-                    </button>
-                ) : (
-                    <button 
-                        className={`profile-btn ${isCurrentlySubscribed ? 'profile-btn-edit' : 'profile-btn-subscribe'}`}
-                        onClick={handleSubscribe}
-                    >
-                        {isCurrentlySubscribed ? 'Subscribed' : 'Subscribe'}
-                    </button>
-                )
             )}
         </div>
       </section>
@@ -274,11 +273,11 @@ const Profile = () => {
                           const thumbnailSrc = playlist.thumbnail || 
                                                (playlist.videos && playlist.videos[0]?.thumbnail) || 
                                                "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
-                          return (
+                            return (
                               <div 
                                   key={playlist._id} 
                                   className="playlist-grid-card"
-                                  onClick={() => setSelectedPlaylist(playlist)}
+                                  onClick={() => navigate(`/playlist/${playlist._id}`)}
                               >
                                   <div className="playlist-card-thumbnail-container">
                                       <div className="playlist-card-stack-back"></div>
@@ -319,50 +318,7 @@ const Profile = () => {
               </div>
           )}
       </section>
-
-      {selectedPlaylist && (
-        <PlaylistDetailModal
-          playlist={selectedPlaylist}
-          onClose={() => setSelectedPlaylist(null)}
-        />
-      )}
     </div>
-  );
-};
-
-/* ── PLAYLIST DETAIL MODAL COMPONENT ── */
-const PlaylistDetailModal = ({ playlist, onClose }) => {
-  if (!playlist) return null;
-
-  const videoCount = (playlist.videos || []).length;
-  
-  return createPortal(
-    <div className="playlist-modal-overlay" onClick={onClose}>
-      <div className="playlist-modal-content playlist-detail-modal-content" onClick={e => e.stopPropagation()}>
-        <div className="playlist-modal-header">
-          <div>
-            <h3>{playlist.title}</h3>
-            <p className="playlist-detail-modal-desc">
-              {videoCount} video{videoCount !== 1 ? 's' : ''} &bull; {playlist.description || "No description"}
-            </p>
-          </div>
-          <button className="close-modal-btn" onClick={onClose}>&times;</button>
-        </div>
-
-        <div className="playlist-modal-body playlist-detail-modal-body">
-          {videoCount === 0 ? (
-            <div className="no-playlists-msg" style={{ padding: '2rem 0' }}>This playlist has no videos yet.</div>
-          ) : (
-            <div className="playlist-detail-videos-list">
-              {playlist.videos.map((video) => (
-                <VideoCard key={video._id} video={video} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body
   );
 };
 

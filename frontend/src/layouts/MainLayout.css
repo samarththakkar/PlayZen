@@ -88,3 +88,19 @@
   left: -200px;
   background: radial-gradient(circle, var(--glow-soft) 0%, transparent 70%);
 }
+
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 99; /* Behind sidebar drawer (100) but above header (9999 is too high, wait. Let's make sure it's below the sidebar but above other content) */
+    display: block;
+}
+
+@media (min-width: 1024px) {
+    .sidebar-backdrop {
+        display: none !important;
+    }
+}

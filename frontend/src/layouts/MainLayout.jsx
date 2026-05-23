@@ -46,6 +46,9 @@ const MainLayout = () => {
 
       {/* 2. Horizontal body containing Sidebar + Main View */}
       <div className={`app-body ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
+        {isSidebarOpen && (
+          <div className="sidebar-backdrop" onClick={toggleSidebar}></div>
+        )}
         <Sidebar isOpen={isSidebarOpen} />
         
         <main className="app-main-content">

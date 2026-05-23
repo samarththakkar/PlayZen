@@ -215,14 +215,9 @@
                     1px 0 0 rgba(255, 85, 85, 0.12);
     }
 
-    /* Backdrop overlay behind mobile sidebar */
+    /* Backdrop overlay behind mobile sidebar (handled by .sidebar-backdrop in MainLayout) */
     .global-sidebar.mobile-open::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: -1;
-        pointer-events: none;
+        display: none !important;
     }
 }
 /* ==========================================================================

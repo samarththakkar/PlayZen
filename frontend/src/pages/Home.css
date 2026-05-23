@@ -602,3 +602,12 @@
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+@media (max-width: 1023px) {
+    .categories-section,
+    .app-body.sidebar-collapsed .categories-section {
+        left: 0 !important;
+        padding: 0.5rem 1rem !important;
+        width: 100% !important;
+    }
+}
