@@ -34,6 +34,25 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
     }
   }, []);
 
+  // Cross-tab storage change sync listener for search history
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'playzen_search_history') {
+        try {
+          if (e.newValue) {
+            setSearchHistory(JSON.parse(e.newValue));
+          } else {
+            setSearchHistory([]);
+          }
+        } catch (err) {
+          console.error('[Header] Error parsing search history from storage:', err);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Fetch live suggestions when user types is now handled by useSearch
 
   // Handle outside clicks

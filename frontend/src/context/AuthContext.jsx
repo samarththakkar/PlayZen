@@ -4,8 +4,23 @@ import authService from '../services/authService';
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user,            setUser]            = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user,            setUser]            = useState(() => {
+    const saved = localStorage.getItem('playzen_user');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const saved = localStorage.getItem('playzen_user');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return !!(parsed && (parsed._id || parsed.id));
+      } catch (e) {}
+    }
+    return false;
+  });
   const [loading,         setLoading]         = useState(true);
   const [authError,       setAuthError]       = useState(null);
 
@@ -33,6 +48,7 @@ export const AuthProvider = ({ children }) => {
           if (userData && (userData._id || userData.id)) {
             setUser(userData);
             setIsAuthenticated(true);
+            localStorage.setItem('playzen_user', JSON.stringify(userData));
           }
         }
       } catch (error) {
@@ -43,6 +59,7 @@ export const AuthProvider = ({ children }) => {
         }
         setUser(null);
         setIsAuthenticated(false);
+        localStorage.removeItem('playzen_user');
       } finally {
         setLoading(false);
         checkingRef.current = false;
@@ -73,6 +90,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser(loggedInUser);
       setIsAuthenticated(true);
+      localStorage.setItem('playzen_user', JSON.stringify(loggedInUser));
       return response;
     } catch (error) {
       const message =
@@ -104,6 +122,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser(registeredUser);
       setIsAuthenticated(true);
+      localStorage.setItem('playzen_user', JSON.stringify(registeredUser));
       return response;
     } catch (error) {
       const message =
@@ -128,6 +147,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       setAuthError(null);
+      localStorage.removeItem('playzen_user');
     }
   }, []);
 
@@ -136,8 +156,13 @@ export const AuthProvider = ({ children }) => {
   ───────────────────────────────────────────── */
   const updateUserSession = useCallback((newUserData) => {
     setUser((prev) => {
-      if (!prev) return newUserData;
-      return { ...prev, ...newUserData };
+      const updated = prev ? { ...prev, ...newUserData } : newUserData;
+      if (updated) {
+        localStorage.setItem('playzen_user', JSON.stringify(updated));
+      } else {
+        localStorage.removeItem('playzen_user');
+      }
+      return updated;
     });
   }, []);
 
@@ -145,6 +170,34 @@ export const AuthProvider = ({ children }) => {
      CLEAR AUTH ERROR (call from login/signup forms)
   ───────────────────────────────────────────── */
   const clearAuthError = useCallback(() => setAuthError(null), []);
+
+  // Cross-tab storage change sync listener for auth session and profile
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'playzen_user') {
+        try {
+          if (e.newValue) {
+            const parsedUser = JSON.parse(e.newValue);
+            setUser(prev => {
+              if (JSON.stringify(prev) === JSON.stringify(parsedUser)) return prev;
+              return parsedUser;
+            });
+            setIsAuthenticated(true);
+          } else {
+            setUser(prev => {
+              if (prev === null) return prev;
+              return null;
+            });
+            setIsAuthenticated(false);
+          }
+        } catch (err) {
+          console.error('[AuthContext] Error parsing playzen_user from storage event:', err);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   /* ─────────────────────────────────────────────
      CONTEXT VALUE

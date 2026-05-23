@@ -92,6 +92,40 @@ const Watch = () => {
   const shareMenuRef = useRef(null);
   const moreMenuRef = useRef(null);
 
+  // Customized shortcuts state
+  const [playerShortcuts, setPlayerShortcuts] = useState(() => {
+    const saved = localStorage.getItem('playzen_keyboard_shortcuts');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      playPause: 'k',
+      fullscreen: 'f',
+      mute: 'm',
+      volumeUp: 'ArrowUp',
+      volumeDown: 'ArrowDown',
+      seekForward: 'ArrowRight',
+      seekBackward: 'ArrowLeft',
+      pip: 'p',
+      speedMenu: 's'
+    };
+  });
+
+  // Cross-tab storage change sync listener
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'playzen_keyboard_shortcuts') {
+        try {
+          if (e.newValue) {
+            setPlayerShortcuts(JSON.parse(e.newValue));
+          }
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Playback speed handler
   const handleSpeedChange = (speed) => {
     const rate = Number(speed);
@@ -285,23 +319,6 @@ const Watch = () => {
         return;
       }
 
-      // Load customized shortcuts
-      const saved = localStorage.getItem('playzen_keyboard_shortcuts');
-      let config = {
-        playPause: 'k',
-        fullscreen: 'f',
-        mute: 'm',
-        volumeUp: 'ArrowUp',
-        volumeDown: 'ArrowDown',
-        seekForward: 'ArrowRight',
-        seekBackward: 'ArrowLeft',
-        pip: 'p',
-        speedMenu: 's'
-      };
-      if (saved) {
-        try { config = JSON.parse(saved); } catch (err) {}
-      }
-
       const key = e.key;
 
       const matchesKey = (binding, pressed) => {
@@ -310,16 +327,16 @@ const Watch = () => {
         return binding.toLowerCase() === pressed.toLowerCase();
       };
 
-      if (matchesKey(config.playPause, key) || (config.playPause === 'k' && key === ' ')) {
+      if (matchesKey(playerShortcuts.playPause, key) || (playerShortcuts.playPause === 'k' && key === ' ')) {
         e.preventDefault();
         handlePlayPause();
-      } else if (matchesKey(config.fullscreen, key)) {
+      } else if (matchesKey(playerShortcuts.fullscreen, key)) {
         e.preventDefault();
         toggleFullscreen();
-      } else if (matchesKey(config.mute, key)) {
+      } else if (matchesKey(playerShortcuts.mute, key)) {
         e.preventDefault();
         toggleMute();
-      } else if (matchesKey(config.volumeUp, key)) {
+      } else if (matchesKey(playerShortcuts.volumeUp, key)) {
         e.preventDefault();
         setVolume(prev => {
           const next = Math.min(1, prev + 0.1);
@@ -330,7 +347,7 @@ const Watch = () => {
           }
           return next;
         });
-      } else if (matchesKey(config.volumeDown, key)) {
+      } else if (matchesKey(playerShortcuts.volumeDown, key)) {
         e.preventDefault();
         setVolume(prev => {
           const next = Math.max(0, prev - 0.1);
@@ -341,20 +358,20 @@ const Watch = () => {
           }
           return next;
         });
-      } else if (matchesKey(config.seekForward, key)) {
+      } else if (matchesKey(playerShortcuts.seekForward, key)) {
         e.preventDefault();
         if (videoRef.current) {
           videoRef.current.currentTime = Math.min(duration, videoRef.current.currentTime + 10);
         }
-      } else if (matchesKey(config.seekBackward, key)) {
+      } else if (matchesKey(playerShortcuts.seekBackward, key)) {
         e.preventDefault();
         if (videoRef.current) {
           videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
         }
-      } else if (matchesKey(config.pip, key)) {
+      } else if (matchesKey(playerShortcuts.pip, key)) {
         e.preventDefault();
         togglePictureInPicture();
-      } else if (matchesKey(config.speedMenu, key)) {
+      } else if (matchesKey(playerShortcuts.speedMenu, key)) {
         e.preventDefault();
         setShowSpeedMenu(prev => !prev);
       }
@@ -363,7 +380,7 @@ const Watch = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isPlaying, isMuted, volume, duration]);
+  }, [isPlaying, isMuted, volume, duration, playerShortcuts]);
 
   // Format Time helper
   const formatTime = (secs) => {

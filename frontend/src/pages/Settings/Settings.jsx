@@ -99,6 +99,51 @@ const Settings = () => {
     };
   }, [activeShortcutEdit, shortcuts]);
 
+  // Cross-tab storage change sync listener for shortcuts and preferences
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'playzen_keyboard_shortcuts') {
+        try {
+          if (e.newValue) {
+            const parsed = JSON.parse(e.newValue);
+            setShortcuts((prev) => {
+              if (JSON.stringify(prev) === JSON.stringify(parsed)) return prev;
+              return parsed;
+            });
+          }
+        } catch (err) {
+          console.error('[Settings] Failed to parse shortcuts from storage:', err);
+        }
+      } else if (e.key === 'settings') {
+        try {
+          if (e.newValue) {
+            const settingsData = JSON.parse(e.newValue);
+            setDbSettings((prev) => {
+              const nextSettings = {
+                emailNotifications: settingsData.emailNotifications ?? true,
+                pushNotifications: settingsData.pushNotifications ?? true,
+                privacy: {
+                  profileVisibility: settingsData.privacy?.profileVisibility ?? 'public',
+                  searchVisibility: settingsData.privacy?.searchVisibility ?? true,
+                },
+                playback: {
+                  hoverAutoplay: settingsData.playback?.hoverAutoplay ?? true,
+                }
+              };
+              if (JSON.stringify(prev) === JSON.stringify(nextSettings)) return prev;
+              return nextSettings;
+            });
+          }
+        } catch (err) {
+          console.error('[Settings] Failed to parse settings from storage:', err);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Loading states
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [updatingProfile, setUpdatingProfile] = useState(false);
