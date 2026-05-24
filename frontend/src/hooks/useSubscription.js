@@ -19,14 +19,26 @@ const useSubscription = (channelId) => {
   }, [channelId]);
 
   const toggle = async () => {
-    if (loading) return;
-    setLoading(true);
-    const { data } = await toggleSubscription(channelId);
-    if (data) {
-      setIsSubscribed(data.isSubscribed);
-      setSubscribersCount(data.subscribersCount);
+    const previousIsSubscribed = isSubscribed;
+    const previousSubscribersCount = subscribersCount;
+
+    const nextIsSubscribed = !isSubscribed;
+    const nextSubscribersCount = nextIsSubscribed ? subscribersCount + 1 : Math.max(0, subscribersCount - 1);
+
+    setIsSubscribed(nextIsSubscribed);
+    setSubscribersCount(nextSubscribersCount);
+
+    try {
+      const { data } = await toggleSubscription(channelId);
+      if (data) {
+        setIsSubscribed(data.isSubscribed);
+        setSubscribersCount(data.subscribersCount);
+      }
+    } catch (error) {
+      console.error("Failed to toggle subscription:", error);
+      setIsSubscribed(previousIsSubscribed);
+      setSubscribersCount(previousSubscribersCount);
     }
-    setLoading(false);
   };
 
   return { isSubscribed, subscribersCount, toggle, loading };

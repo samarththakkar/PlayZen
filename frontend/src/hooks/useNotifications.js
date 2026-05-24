@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getUnreadCount, markAsRead, markAllAsRead } from "../services/notification.service.js";
 import { initSocket, disconnectSocket } from "../services/socket.js";
-import toast from "react-hot-toast";
+import toast from "../utils/toast";
 
 const useNotifications = (userId) => {
   const [unreadCount, setUnreadCount] = useState(0);

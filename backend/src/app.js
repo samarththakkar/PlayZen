@@ -3,10 +3,19 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "./config/passport.js";
 import { ApiError } from "./utils/ApiError.js";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import hpp from "hpp";
 
 const app = express();
 
-// ✅ CORS configuration for cross-origin deployment (Vercel + Render)
+// ✅ Helmet for secure HTTP headers (allowing cross-origin resource sharing)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// ✅ CORS configuration for cross-origin deployment
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map(o => o.trim())
   : ["http://localhost:5173", "http://localhost:3000", "https://play-zen.vercel.app"];
@@ -16,7 +25,7 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
-    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
+    const isAllowed = allowedOrigins.includes(origin);
     
     if (isAllowed) {
       return callback(null, true);
@@ -38,14 +47,61 @@ app.use(cors({
   ]
 }));
 
-// Handle preflight OPTIONS requests for all routes (Express 5 compatible — no bare "*")
+// Handle preflight OPTIONS requests for all routes (Express 5 compatible)
 app.options(/(.*)/,  cors());
+
+// ✅ Global and Route-specific Rate Limiters
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 1000,
+    message: {
+        success: false,
+        message: "Too many requests from this IP, please try again after 15 minutes."
+    },
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 30,
+    message: {
+        success: false,
+        message: "Too many attempts. Please try again after 15 minutes."
+    },
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+});
+
+app.use(globalLimiter);
+app.use("/api/v1/users/login", authLimiter);
+app.use("/api/v1/users/register", authLimiter);
+app.use("/api/v1/users/send-otp", authLimiter);
+app.use("/api/v1/users/forgot-password", authLimiter);
+app.use("/api/v1/users/reset-password", authLimiter);
 
 // Middlewares
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+// ✅ Override req.query to be mutable for Express 5 compatibility with legacy middlewares
+app.use((req, res, next) => {
+  Object.defineProperty(req, 'query', {
+    value: { ...req.query },
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
+  next();
+});
+
+// ✅ NoSQL Query Injection protection
+app.use(mongoSanitize());
+
+// ✅ HTTP Parameter Pollution protection
+app.use(hpp());
 
 // Initialize Passport
 app.use(passport.initialize());

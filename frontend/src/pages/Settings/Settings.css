@@ -679,3 +679,125 @@ input:checked + .slider:before {
 .justify-between {
     justify-content: space-between !important;
 }
+
+/* Support Section Styling */
+.support-card-info {
+    border-left: 4px solid #ff5555;
+    background: linear-gradient(135deg, rgba(20, 20, 25, 0.9), rgba(30, 20, 20, 0.4)) !important;
+}
+
+.support-channels-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.support-channel-box {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: rgba(10, 10, 12, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.support-channel-box:hover {
+    border-color: rgba(255, 85, 85, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.channel-icon-wrap {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 85, 85, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff5555;
+    flex-shrink: 0;
+}
+
+.channel-details {
+    flex: 1;
+}
+
+.channel-details h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.support-email-text {
+    margin: 0.25rem 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: monospace;
+}
+
+.channel-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.support-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.support-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.support-action-link-btn {
+    background: linear-gradient(135deg, #ff5555, #e53935);
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(255, 85, 85, 0.2);
+    transition: all 0.2s;
+}
+
+.support-action-link-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(255, 85, 85, 0.3);
+}
+
+/* Fix dropdown layout alignment in settings toggle items */
+.settings-toggle-item.dropdown-item {
+    align-items: center;
+}
+
+@media (max-width: 600px) {
+    .support-channel-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}

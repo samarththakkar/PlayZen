@@ -1,35 +1,36 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+import toast from '../../utils/toast';
 
 /* Right panel only */
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email,   setEmail]   = useState('');
   const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
-  const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(''); setSuccess('');
-    if (!email) { setError('Please enter your email address.'); return; }
+    e.preventDefault();
+    if (!email) {
+      toast.error('Please enter your email address.');
+      return;
+    }
     setLoading(true);
     try {
       await api.post('/users/forgot-password', { email });
-      setSuccess('If that email is registered, a reset code has been sent.');
+      toast.success('Reset code has been sent to your email.');
       setTimeout(() => navigate('/reset-password', { state: { email } }), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to process request. Please try again.');
-    } finally { setLoading(false); }
+      toast.error(err.response?.data?.message || 'Failed to process request. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <div className="form-title">Forgot Password?</div>
       <div className="form-sub">Enter your email and we'll send you a reset code.</div>
-
-      {error   && <div className="auth-sys-banner sys-error">{error}</div>}
-      {success && <div className="auth-sys-banner sys-success">{success}</div>}
 
       <form onSubmit={handleSubmit} autoComplete="on">
         <div className="auth-field">

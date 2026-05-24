@@ -31,6 +31,19 @@ const settingsSchema = new Schema(
             hoverAutoplay: {
                 type: Boolean,
                 default: true
+            },
+            autoplayNext: {
+                type: Boolean,
+                default: true
+            },
+            defaultQuality: {
+                type: String,
+                enum: ["auto", "1080p", "720p", "480p", "360p"],
+                default: "auto"
+            },
+            defaultSpeed: {
+                type: Number,
+                default: 1.0
             }
         }
     },

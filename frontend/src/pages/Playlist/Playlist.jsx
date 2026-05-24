@@ -5,7 +5,7 @@ import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import Skeleton from '../../components/ui/Skeleton';
-import toast from 'react-hot-toast';
+import toast from '../../utils/toast';
 import './Playlist.css';
 
 const Playlist = () => {

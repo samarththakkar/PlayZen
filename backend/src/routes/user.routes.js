@@ -47,17 +47,25 @@ router.route("/auth/google").get(
     passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' })
 );
 
-router.route("/auth/google/callback").get(
-    passport.authenticate('google', { session: false }),
-    async (req, res) => {
-        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(req.user._id);
-        const options = getCookieOptions();
+router.route("/auth/google/callback").get((req, res, next) => {
+    passport.authenticate('google', { session: false }, async (err, user, info) => {
+        if (err || !user) {
+            console.error("Google OAuth Error:", err || info);
+            return res.redirect(`${process.env.CLIENT_URL}/login?error=google-auth-failed`);
+        }
+        try {
+            const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+            const options = getCookieOptions();
 
-        res.cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
-            .redirect(`${process.env.CLIENT_URL}/?login=success`);
-    }
-);
+            res.cookie("accessToken", accessToken, options)
+                .cookie("refreshToken", refreshToken, options)
+                .redirect(`${process.env.CLIENT_URL}/?login=success`);
+        } catch (error) {
+            console.error("Token generation error during Google callback:", error);
+            return res.redirect(`${process.env.CLIENT_URL}/login?error=token-generation-failed`);
+        }
+    })(req, res, next);
+});
 
 //secured routes
 router.route("/logout").post(verifyJWT, logoutUser);

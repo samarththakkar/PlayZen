@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import authService from '../services/authService';
+import toast from '../utils/toast';
 
 export const AuthContext = createContext(null);
 
@@ -21,7 +22,23 @@ export const AuthProvider = ({ children }) => {
     }
     return false;
   });
-  const [loading,         setLoading]         = useState(true);
+  const [loading,         setLoading]         = useState(() => {
+    return !localStorage.getItem('playzen_user');
+  });
+
+  const googleSuccessToastShownRef = useRef(false);
+
+  // Display Google login success toast and clean URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('login') === 'success' && !googleSuccessToastShownRef.current) {
+      googleSuccessToastShownRef.current = true;
+      toast.success('Successfully logged in with Google!');
+      const cleanSearch = window.location.search.replace(/[?&]login=success/, '').replace(/^&/, '?');
+      const newUrl = window.location.pathname + (cleanSearch === '?' ? '' : cleanSearch);
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
   const [authError,       setAuthError]       = useState(null);
 
   // Prevent duplicate simultaneous auth checks

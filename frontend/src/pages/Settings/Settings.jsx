@@ -13,11 +13,14 @@ import {
   Eye, 
   Check,
   Loader2,
-  Keyboard
+  Keyboard,
+  HelpCircle,
+  Send,
+  Copy
 } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 import * as settingsService from '../../services/settings.service';
-import toast from 'react-hot-toast';
+import toast from '../../utils/toast';
 import './Settings.css';
 
 const SHORTCUT_LABELS = {
@@ -128,6 +131,9 @@ const Settings = () => {
                 },
                 playback: {
                   hoverAutoplay: settingsData.playback?.hoverAutoplay ?? true,
+                  autoplayNext: settingsData.playback?.autoplayNext ?? true,
+                  defaultQuality: settingsData.playback?.defaultQuality ?? 'auto',
+                  defaultSpeed: settingsData.playback?.defaultSpeed ?? 1.0,
                 }
               };
               if (JSON.stringify(prev) === JSON.stringify(nextSettings)) return prev;
@@ -161,6 +167,9 @@ const Settings = () => {
     },
     playback: {
       hoverAutoplay: true,
+      autoplayNext: true,
+      defaultQuality: 'auto',
+      defaultSpeed: 1.0,
     }
   });
 
@@ -228,6 +237,9 @@ const Settings = () => {
             },
             playback: {
               hoverAutoplay: settingsData.playback?.hoverAutoplay ?? true,
+              autoplayNext: settingsData.playback?.autoplayNext ?? true,
+              defaultQuality: settingsData.playback?.defaultQuality ?? 'auto',
+              defaultSpeed: settingsData.playback?.defaultSpeed ?? 1.0,
             }
           });
           // Cache in local storage for fast access by other components
@@ -442,22 +454,54 @@ const Settings = () => {
     }
   };
 
-  const handlePlaybackToggle = async (val) => {
-    try {
-      const nextPlayback = { hoverAutoplay: val };
-      setDbSettings(prev => ({ ...prev, playback: nextPlayback }));
+  const handlePlaybackChange = async (key, val) => {
+    const previousPlayback = dbSettings.playback;
+    const nextPlayback = { ...dbSettings.playback, [key]: val };
+    
+    setDbSettings(prev => ({ ...prev, playback: nextPlayback }));
 
-      const { data } = await settingsService.updatePlaybackSettings(val);
+    try {
+      const { data } = await settingsService.updatePlaybackSettings(nextPlayback);
       if (data?.data) {
         localStorage.setItem('settings', JSON.stringify(data.data));
       }
     } catch (err) {
       console.error(err);
-      setDbSettings(prev => ({
-        ...prev,
-        playback: { hoverAutoplay: !val }
-      }));
+      // Rollback on error
+      setDbSettings(prev => ({ ...prev, playback: previousPlayback }));
     }
+  };
+
+  // Support ticket form state
+  const [supportForm, setSupportForm] = useState({
+    subject: '',
+    category: 'general',
+    message: '',
+  });
+  const [submittingSupport, setSubmittingSupport] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const handleSupportSubmit = (e) => {
+    e.preventDefault();
+    if (!supportForm.subject.trim() || !supportForm.message.trim()) {
+      toast.error('Subject and message are required.');
+      return;
+    }
+
+    setSubmittingSupport(true);
+    // Simulate API delay
+    setTimeout(() => {
+      setSubmittingSupport(false);
+      setSupportForm({ subject: '', category: 'general', message: '' });
+      toast.success('Support request submitted successfully! We will contact you soon.');
+    }, 1200);
+  };
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText('shivthakkar07.st@gmail.com');
+    setCopiedEmail(true);
+    toast.success('Support email copied to clipboard!');
+    setTimeout(() => setCopiedEmail(false), 2000);
   };
 
   if (!user || loadingSettings) {
@@ -514,6 +558,13 @@ const Settings = () => {
             >
               <Keyboard size={18} />
               <span>Shortcuts</span>
+            </li>
+            <li 
+              className={activeTab === 'support' ? 'active' : ''} 
+              onClick={() => setActiveTab('support')}
+            >
+              <HelpCircle size={18} />
+              <span>Support</span>
             </li>
           </ul>
         </div>
@@ -857,11 +908,68 @@ const Settings = () => {
                       <input 
                         type="checkbox" 
                         checked={dbSettings.playback.hoverAutoplay}
-                        onChange={(e) => handlePlaybackToggle(e.target.checked)}
+                        onChange={(e) => handlePlaybackChange('hoverAutoplay', e.target.checked)}
                       />
                       <span className="slider round"></span>
                     </label>
                   </div>
+
+                  <div className="settings-toggle-item">
+                    <div className="toggle-details">
+                      <h3>Autoplay Next Video</h3>
+                      <p>Automatically play the next recommended video when the current video finishes.</p>
+                    </div>
+                    <label className="switch">
+                      <input 
+                        type="checkbox" 
+                        checked={dbSettings.playback.autoplayNext}
+                        onChange={(e) => handlePlaybackChange('autoplayNext', e.target.checked)}
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  </div>
+
+                  <div className="settings-toggle-item dropdown-item">
+                    <div className="toggle-details">
+                      <h3>Default Video Quality</h3>
+                      <p>Select your preferred video streaming resolution. Lower quality reduces bandwidth consumption.</p>
+                    </div>
+                    <div className="select-wrapper">
+                      <select 
+                        value={dbSettings.playback.defaultQuality} 
+                        onChange={(e) => handlePlaybackChange('defaultQuality', e.target.value)}
+                        className="settings-select"
+                      >
+                        <option value="auto">Auto (Adaptive)</option>
+                        <option value="1080p">1080p (Full HD)</option>
+                        <option value="720p">720p (HD)</option>
+                        <option value="480p">480p (SD)</option>
+                        <option value="360p">360p (Low)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="settings-toggle-item dropdown-item">
+                    <div className="toggle-details">
+                      <h3>Default Playback Speed</h3>
+                      <p>Set the initial speed of the video player when launching a watch page.</p>
+                    </div>
+                    <div className="select-wrapper">
+                      <select 
+                        value={dbSettings.playback.defaultSpeed} 
+                        onChange={(e) => handlePlaybackChange('defaultSpeed', parseFloat(e.target.value))}
+                        className="settings-select"
+                      >
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1">1.0x (Normal)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2.0x</option>
+                      </select>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -941,6 +1049,91 @@ const Settings = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ────────────────────────────────────────────────────────
+              6. SUPPORT TAB
+          ──────────────────────────────────────────────────────── */}
+          {activeTab === 'support' && (
+            <div className="settings-section animate-fade-in">
+              <div className="settings-card support-card-info">
+                <h2>Contact Support & Feedback</h2>
+                <p className="settings-muted">Need help, found a bug, or want to suggest a feature? Reach out directly or submit a ticket below.</p>
+                
+                <div className="support-channels-grid">
+                  <div className="support-channel-box">
+                    <div className="channel-icon-wrap">
+                      <Mail size={24} />
+                    </div>
+                    <div className="channel-details">
+                      <h4>Direct Email Support</h4>
+                      <p className="support-email-text">shivthakkar07.st@gmail.com</p>
+                      <div className="channel-actions">
+                        <button type="button" className="support-action-btn" onClick={handleCopyEmail}>
+                          {copiedEmail ? <Check size={14} /> : <Copy size={14} />}
+                          <span>{copiedEmail ? 'Copied!' : 'Copy Email'}</span>
+                        </button>
+                        <a href="mailto:shivthakkar07.st@gmail.com?subject=PlayZen%20Support%20Request" className="support-action-link-btn">
+                          <Send size={14} />
+                          <span>Send Email</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSupportSubmit} className="settings-card mt-2">
+                <h2>Submit Support Ticket</h2>
+                <p className="settings-muted">Fill out this ticket form and our support team will get back to you via your registered email address ({user.email}).</p>
+
+                <div className="form-group-grid">
+                  <div className="form-input-container">
+                    <label>Ticket Subject</label>
+                    <input 
+                      type="text" 
+                      placeholder="Summarize the issue..."
+                      value={supportForm.subject}
+                      onChange={(e) => setSupportForm(prev => ({ ...prev, subject: e.target.value }))}
+                      required 
+                    />
+                  </div>
+
+                  <div className="form-input-container">
+                    <label>Category</label>
+                    <div className="select-wrapper">
+                      <select 
+                        value={supportForm.category} 
+                        onChange={(e) => setSupportForm(prev => ({ ...prev, category: e.target.value }))}
+                        className="settings-select"
+                      >
+                        <option value="general">General Inquiry</option>
+                        <option value="bug">Report a Bug</option>
+                        <option value="feature">Request a Feature</option>
+                        <option value="account">Account Access Issues</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-input-container">
+                  <label>Detailed Message</label>
+                  <textarea 
+                    rows={6}
+                    placeholder="Describe your issue or feedback in detail..."
+                    value={supportForm.message}
+                    onChange={(e) => setSupportForm(prev => ({ ...prev, message: e.target.value }))}
+                    required 
+                  />
+                </div>
+
+                <div className="card-actions">
+                  <button type="submit" className="settings-submit-btn" disabled={submittingSupport}>
+                    {submittingSupport ? <Loader2 className="spinner" size={16} /> : 'Submit Support Ticket'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 

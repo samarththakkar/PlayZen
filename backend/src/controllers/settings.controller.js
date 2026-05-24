@@ -70,13 +70,16 @@ const updatePrivacySettings = asyncHandler(async (req, res) => {
 
 // Update playback settings
 const updatePlaybackSettings = asyncHandler(async (req, res) => {
-    const { hoverAutoplay } = req.body;
+    const { hoverAutoplay, autoplayNext, defaultQuality, defaultSpeed } = req.body;
 
     const settings = await Settings.findOneAndUpdate(
         { user: req.user._id },
         {
             $set: {
                 ...(hoverAutoplay !== undefined && { "playback.hoverAutoplay": hoverAutoplay }),
+                ...(autoplayNext !== undefined && { "playback.autoplayNext": autoplayNext }),
+                ...(defaultQuality !== undefined && { "playback.defaultQuality": defaultQuality }),
+                ...(defaultSpeed !== undefined && { "playback.defaultSpeed": defaultSpeed }),
             }
         },
         { new: true, upsert: true }

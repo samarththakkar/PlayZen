@@ -7,7 +7,7 @@ import {
   Play, Pause, Volume2, VolumeX, Volume1, Volume, Maximize, Minimize, Trash2, Settings, Tv
 } from 'lucide-react';
 import api from '../../services/api';
-import toast from 'react-hot-toast';
+import toast from '../../utils/toast';
 import './Watch.css';
 import Skeleton from '../../components/ui/Skeleton';
 import { getAvatarUrl } from '../../utils/avatarUtils';
@@ -416,31 +416,76 @@ const Watch = () => {
   const handleAddComment = async (e) => {
     if (e) e.preventDefault();
     if (!newComment.trim()) return;
+
+    const commentContent = newComment;
+    const tempCommentId = `temp-${Date.now()}`;
+
+    // Create a temporary mock comment to display instantly
+    const mockComment = {
+      _id: tempCommentId,
+      content: commentContent,
+      createdAt: new Date().toISOString(),
+      owner: {
+        _id: user._id || user.id,
+        fullname: user.fullname || user.username || "You",
+        username: user.username || "you",
+        avatar: user.avatar || ""
+      }
+    };
+
+    // Update state optimistically
+    setComments(prev => [mockComment, ...prev]);
+    setCommentsCount(prev => prev + 1);
+    setNewComment("");
+    setIsCommentFocused(false);
+
     try {
-      const response = await api.post(`/comments/add-comment/${videoId}`, { content: newComment });
+      const response = await api.post(`/comments/add-comment/${videoId}`, { content: commentContent });
       if (response.data.success) {
-        setNewComment("");
-        setIsCommentFocused(false);
         toast.success("Comment added successfully!");
+        // Fetch to sync real DB data (especially the _id)
         fetchComments();
+      } else {
+        // Rollback
+        setComments(prev => prev.filter(c => c._id !== tempCommentId));
+        setCommentsCount(prev => Math.max(0, prev - 1));
+        setNewComment(commentContent);
       }
     } catch (err) {
       console.error("Error posting comment:", err);
       toast.error("Failed to add comment.");
+      // Rollback
+      setComments(prev => prev.filter(c => c._id !== tempCommentId));
+      setCommentsCount(prev => Math.max(0, prev - 1));
+      setNewComment(commentContent);
     }
   };
 
   const handleDeleteComment = async (commentId) => {
     if (!window.confirm("Are you sure you want to delete this comment?")) return;
+
+    const previousComments = comments;
+    const previousCount = commentsCount;
+
+    // Optimistically remove comment
+    setComments(prev => prev.filter(c => c._id !== commentId));
+    setCommentsCount(prev => Math.max(0, prev - 1));
+
     try {
       const response = await api.delete(`/comments/delete-comment/${commentId}`);
       if (response.data.success) {
         toast.success("Comment deleted successfully!");
-        fetchComments();
+      } else {
+        // Rollback
+        setComments(previousComments);
+        setCommentsCount(previousCount);
       }
     } catch (err) {
       console.error("Error deleting comment:", err);
       toast.error("Failed to delete comment.");
+      // Rollback
+      setComments(previousComments);
+      setCommentsCount(previousCount);
     }
   };
 
@@ -762,18 +807,26 @@ const Watch = () => {
                 className={`watch-action-btn ${isSaved ? 'active-action' : ''}`}
                 onClick={() => {
                   if (!user) return;
+                  const previousIsSaved = isSaved;
+                  const nextIsSaved = !isSaved;
+                  
+                  setIsSaved(nextIsSaved);
+                  if (nextIsSaved) {
+                    toast.success("Added to Watch Later");
+                  } else {
+                    toast.success("Removed from Watch Later");
+                  }
+
                   api.post(`/watch-later/toggle/${videoId}`)
                     .then(res => {
                       const saved = res.data?.data?.saved;
-                      setIsSaved(saved ?? !isSaved);
-                      if (saved) {
-                        toast.success("Added to Watch Later");
-                      } else {
-                        toast.success("Removed from Watch Later");
+                      if (saved !== undefined && saved !== nextIsSaved) {
+                        setIsSaved(saved);
                       }
                     })
                     .catch((err) => {
                       console.error("Error toggling Watch Later:", err);
+                      setIsSaved(previousIsSaved);
                       toast.error("Failed to update Watch Later");
                     });
                 }}

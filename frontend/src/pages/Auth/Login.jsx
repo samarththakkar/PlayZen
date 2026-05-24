@@ -1,19 +1,48 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import toast from '../../utils/toast';
 
 /* Right panel only — layout & left panel live in AuthLayout */
 const Login = () => {
   const navigate  = useNavigate();
   const location  = useLocation();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const messageFromState = location.state?.message || '';
 
   const [formData,     setFormData]     = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading,      setLoading]      = useState(false);
-  const [error,        setError]        = useState('');
+
+  const errorToastShownRef = useRef(false);
+  const successToastShownRef = useRef(false);
+
+  useEffect(() => {
+    if (messageFromState && !successToastShownRef.current) {
+      successToastShownRef.current = true;
+      toast.success(messageFromState);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [messageFromState, location.pathname, navigate]);
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam && !errorToastShownRef.current) {
+      errorToastShownRef.current = true;
+      if (errorParam === 'google-auth-failed') {
+        toast.error('Google authentication failed. Please try again.');
+      } else if (errorParam === 'token-generation-failed') {
+        toast.error('Failed to generate login token. Please contact support.');
+      } else {
+        toast.error('An error occurred during authentication.');
+      }
+      const cleanSearch = window.location.search.replace(/[?&]error=[^&]+/, '').replace(/^&/, '?');
+      const newUrl = window.location.pathname + (cleanSearch === '?' ? '' : cleanSearch);
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e) =>
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -22,17 +51,17 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     if (!formData.email || !formData.password) {
-      setError('Please fill in all fields.');
+      toast.error('Please fill in all fields.');
       return;
     }
     setLoading(true);
     try {
       await login({ email: formData.email, password: formData.password });
+      toast.success('Signed in successfully!');
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      toast.error(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -42,9 +71,6 @@ const Login = () => {
     <>
       <div className="form-title">Welcome Back</div>
       <div className="form-sub">Sign in to continue to your creator dashboard.</div>
-
-      {messageFromState && <div className="auth-sys-banner sys-success">{messageFromState}</div>}
-      {error            && <div className="auth-sys-banner sys-error">{error}</div>}
 
       <button
         type="button" className="auth-social-btn"

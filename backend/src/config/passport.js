@@ -9,20 +9,25 @@ passport.use(new GoogleStrategy({
     proxy: true
 }, async (accessToken, refreshToken, profile, done) => {
     try {
+        const email = profile.emails?.[0]?.value;
+        if (!email) {
+            return done(new Error("No email associated with this Google account."), null);
+        }
+
         let user = await User.findOne({
-            $or: [{ googleId: profile.id }, { email: profile.emails[0].value }]
+            $or: [{ googleId: profile.id }, { email }]
         });
 
         if (!user) {
-            const username = profile.emails[0].value.split('@')[0] + Math.random().toString(36).substr(2, 4);
+            const username = email.split('@')[0] + Math.random().toString(36).substr(2, 4);
 
             user = await User.create({
-                fullname: profile.displayName,
-                email: profile.emails[0].value,
+                fullname: profile.displayName || "Google User",
+                email,
                 username,
                 googleId: profile.id,
                 provider: 'google',
-                avatar: profile.photos[0]?.value || "",
+                avatar: profile.photos?.[0]?.value || "",
                 coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop", // A nice default abstract gradient
                 isEmailVerified: true
             });
@@ -35,7 +40,7 @@ passport.use(new GoogleStrategy({
                 needsSave = true;
             }
             // Always sync the real Google photo for Google users
-            if (profile.photos[0]?.value) {
+            if (profile.photos?.[0]?.value && user.avatar !== profile.photos[0].value) {
                 user.avatar = profile.photos[0].value;
                 needsSave = true;
             }

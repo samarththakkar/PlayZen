@@ -8,7 +8,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import api from '../../services/api';
-import toast from 'react-hot-toast';
+import toast from '../../utils/toast';
 import './VideoCard.css';
 
 /* ── helpers (unchanged from original) ── */
@@ -338,14 +338,8 @@ const VideoCard = ({ video }) => {
                 e.stopPropagation();
                 const vid = video._id || video.id;
                 if (!user) { navigate('/login'); return; }
+                toast.success("Watch Later status updated");
                 api.post(`/watch-later/toggle/${vid}`)
-                  .then((res) => {
-                    if (res.data?.data?.saved) {
-                      toast.success("Added to Watch Later");
-                    } else {
-                      toast.success("Removed from Watch Later");
-                    }
-                  })
                   .catch((err) => {
                     console.error("Error toggling Watch Later:", err);
                     toast.error("Failed to update Watch Later");

@@ -12,8 +12,8 @@ export const updatePrivacySettings = async (profileVisibility, searchVisibility)
     return api.patch("/settings/privacy", { profileVisibility, searchVisibility });
 };
 
-export const updatePlaybackSettings = async (hoverAutoplay) => {
-    return api.patch("/settings/playback", { hoverAutoplay });
+export const updatePlaybackSettings = async (playbackData) => {
+    return api.patch("/settings/playback", playbackData);
 };
 
 export const updatePersonalInfo = async (formData) => {

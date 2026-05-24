@@ -4,6 +4,17 @@ import jwt from "jsonwebtoken";
 let io = null;
 const userSockets = new Map(); // userId string -> Set of socketIds
 
+const parseCookies = (cookieHeader) => {
+    if (!cookieHeader) return {};
+    return cookieHeader.split(';').reduce((res, c) => {
+        const [key, val] = c.trim().split('=');
+        if (key && val) {
+            res[key] = decodeURIComponent(val);
+        }
+        return res;
+    }, {});
+};
+
 export const initSocket = (server) => {
     io = new Server(server, {
         cors: {
@@ -20,9 +31,14 @@ export const initSocket = (server) => {
         
         let authenticatedUserId = null;
 
-        // Try extracting user ID from jwt handshake auth or queries
+        // Try extracting user ID from jwt handshake auth, queries or cookies
         try {
-            const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+            let token = socket.handshake.auth?.token || socket.handshake.query?.token;
+            if (!token && socket.request.headers.cookie) {
+                const cookies = parseCookies(socket.request.headers.cookie);
+                token = cookies.accessToken;
+            }
+
             if (token) {
                 const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
                 if (decoded?._id) {
@@ -38,12 +54,24 @@ export const initSocket = (server) => {
             console.log("Socket auth handshake validation failed:", err.message);
         }
 
-        // Fallback or explicit register event
+        // Fallback or explicit register event - SECURED
         socket.on("register-user", (userId) => {
             if (!userId) return;
             const uidStr = String(userId);
             
-            // Clean up old association if any
+            // SECURITY: Block user spoofing. If authenticated, only allow matching ID.
+            if (authenticatedUserId && authenticatedUserId !== uidStr) {
+                console.warn(`Blocked spoofed register-user attempt by socket ${socket.id}. Authenticated as ${authenticatedUserId}, tried to register as ${uidStr}`);
+                return;
+            }
+
+            // SECURITY: If not authenticated via token handshake/cookies, reject the registration.
+            if (!authenticatedUserId) {
+                console.warn(`Blocked unauthenticated register-user attempt for user ${uidStr} on socket ${socket.id}`);
+                return;
+            }
+            
+            // Clean up old association if any (shouldn't differ, but kept for fallback cleanup)
             if (authenticatedUserId && authenticatedUserId !== uidStr) {
                 if (userSockets.has(authenticatedUserId)) {
                     userSockets.get(authenticatedUserId).delete(socket.id);
@@ -55,7 +83,7 @@ export const initSocket = (server) => {
                 userSockets.set(authenticatedUserId, new Set());
             }
             userSockets.get(authenticatedUserId).add(socket.id);
-            console.log(`Socket ${socket.id} explicitly registered User ${authenticatedUserId}`);
+            console.log(`Socket ${socket.id} explicitly verified register-user for ${authenticatedUserId}`);
         });
 
         socket.on("disconnect", () => {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import toast from '../utils/toast';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -20,10 +20,28 @@ const SILENT_URL_PATTERNS = [
     '/notifications/unread-count',   // polled silently on mount
     '/notifications',                // background load in header
     '/users/current-user',           // auth session check
+    '/users/login',
+    '/users/register',
+    '/users/logout',
+    '/users/forgot-password',
+    '/users/reset-password',
+    '/users/send-otp',
+    '/users/verify-otp',
+    '/comments',
+];
+
+// URL patterns where success toasts are suppressed (errors will still toast)
+const SILENT_SUCCESS_URL_PATTERNS = [
+    '/settings',
+    '/likes',
+    '/subscriptions',
 ];
 
 const isSilentUrl = (url = '') =>
     SILENT_URL_PATTERNS.some(pattern => url.includes(pattern));
+
+const isSilentSuccessUrl = (url = '') =>
+    SILENT_SUCCESS_URL_PATTERNS.some(pattern => url.includes(pattern));
 
 api.interceptors.response.use(
     (response) => {
@@ -36,7 +54,8 @@ api.interceptors.response.use(
             !suppressToast &&
             method &&
             ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) &&
-            !isSilentUrl(url)
+            !isSilentUrl(url) &&
+            !isSilentSuccessUrl(url)
         ) {
             const message = response.data?.message || response.data?.data?.message || 'Action completed successfully!';
             toast.success(message);

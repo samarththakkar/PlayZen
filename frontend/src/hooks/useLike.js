@@ -21,17 +21,29 @@ const useLike = (id, type, initialCount = 0) => {
   }, [id, type]);
 
   const toggle = async () => {
-    if (loading) return;
-    setLoading(true);
-    let result;
-    if (type === "video") result = await toggleVideoLike(id);
-    if (type === "comment") result = await toggleCommentLike(id);
-    if (type === "tweet") result = await toggleTweetLike(id);
-    if (result?.data) {
-      setIsLiked(result.data.isLiked);
-      setLikesCount(result.data.likesCount);
+    const previousIsLiked = isLiked;
+    const previousLikesCount = likesCount;
+
+    const nextIsLiked = !isLiked;
+    const nextLikesCount = nextIsLiked ? likesCount + 1 : Math.max(0, likesCount - 1);
+
+    setIsLiked(nextIsLiked);
+    setLikesCount(nextLikesCount);
+
+    try {
+      let result;
+      if (type === "video") result = await toggleVideoLike(id);
+      if (type === "comment") result = await toggleCommentLike(id);
+      if (type === "tweet") result = await toggleTweetLike(id);
+      if (result?.data) {
+        setIsLiked(result.data.isLiked);
+        setLikesCount(result.data.likesCount);
+      }
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
+      setIsLiked(previousIsLiked);
+      setLikesCount(previousLikesCount);
     }
-    setLoading(false);
   };
 
   return { isLiked, likesCount, toggle, loading };

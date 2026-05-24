@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import toast from '../../utils/toast';
 import './Signup.css';
 
 const Signup = () => {
@@ -11,8 +12,6 @@ const Signup = () => {
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const [stepOneData, setStepOneData] = useState({ fullName: '', email: '' });
   const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
@@ -33,9 +32,8 @@ const Signup = () => {
     if (step !== 2) return;
     if (timeLeft <= 0) {
       setStep(1);
-      setSuccess('');
       setOtpValues(['', '', '', '', '', '']);
-      setError('OTP expired after 10 minutes. Please request a new code.');
+      toast.error('OTP expired after 10 minutes. Please request a new code.');
       return;
     }
     const t = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
@@ -73,23 +71,21 @@ const Signup = () => {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     if (!stepOneData.fullName || !stepOneData.email) {
-      setError('Full name and email are required.');
+      toast.error('Full name and email are required.');
       return;
     }
 
     setLoading(true);
     try {
       await api.post('/users/send-otp', stepOneData);
-      setSuccess(`OTP sent to ${stepOneData.email}`);
+      toast.success(`OTP sent to ${stepOneData.email}`);
       setTimeLeft(600);
       setResendCooldown(60);
       setStep(2);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
+      toast.error(err.response?.data?.message || 'Failed to send OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -124,20 +120,18 @@ const Signup = () => {
   };
 
   const verifyOtpCode = async (otp) => {
-    setError('');
-    setSuccess('');
     if (otp.length !== 6) {
-      setError('Enter all 6 digits.');
+      toast.error('Enter all 6 digits.');
       return;
     }
 
     setLoading(true);
     try {
       await api.post('/users/verify-otp', { email: stepOneData.email, otp });
-      setSuccess('Email verified. Complete your account details.');
+      toast.success('Email verified. Complete your account details.');
       setStep(3);
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid or expired OTP.');
+      toast.error(err.response?.data?.message || 'Invalid or expired OTP.');
     } finally {
       setLoading(false);
     }
@@ -151,26 +145,22 @@ const Signup = () => {
 
   const handleResendOtp = async () => {
     if (resendCooldown > 0) return;
-    setError('');
-    setSuccess('');
     try {
       await api.post('/users/send-otp', stepOneData);
-      setSuccess('A new OTP was sent.');
+      toast.success('A new OTP was sent.');
       setOtpValues(['', '', '', '', '', '']);
       setResendCooldown(60);
       setTimeLeft(600);
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not resend OTP.');
+      toast.error(err.response?.data?.message || 'Could not resend OTP.');
     }
   };
 
   const handleFinalRegister = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     if (!stepThreeData.username || !stepThreeData.password || !stepThreeData.avatar) {
-      setError('Username, password, and avatar are required.');
+      toast.error('Username, password, and avatar are required.');
       return;
     }
 
@@ -186,9 +176,10 @@ const Signup = () => {
         data.append('coverImage', stepThreeData.coverImage);
       }
       await register(data);
+      toast.success('Account created successfully!');
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to complete registration.');
+      toast.error(err.response?.data?.message || 'Failed to complete registration.');
     } finally {
       setLoading(false);
     }
@@ -213,9 +204,6 @@ const Signup = () => {
       </div>
 
       <div className="signup-stepper">Step {step} / 3</div>
-
-      {error && <div className="auth-sys-banner sys-error">{error}</div>}
-      {success && <div className="auth-sys-banner sys-success">{success}</div>}
 
       {step === 1 && (
         <>
@@ -319,8 +307,6 @@ const Signup = () => {
               onClick={() => {
                 setStep(1);
                 setOtpValues(['', '', '', '', '', '']);
-                setError('');
-                setSuccess('');
               }}
             >
               Edit email
@@ -374,7 +360,7 @@ const Signup = () => {
               <label className="auth-label">Avatar (required)</label>
               <input type="file" name="avatar" className="auth-input auth-file-input" accept="image/*" onChange={handleFileChange} />
             </div>
-            <div className="auth-field">
+            <div className="auth-grid-2">
               <label className="auth-label">Cover Image (optional)</label>
               <input type="file" name="coverImage" className="auth-input auth-file-input" accept="image/*" onChange={handleFileChange} />
             </div>

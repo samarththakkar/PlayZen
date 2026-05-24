@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Eye, EyeOff } from 'lucide-react';
+import toast from '../../utils/toast';
 
 /* Right panel only */
 const ResetPassword = () => {
@@ -15,8 +16,6 @@ const ResetPassword = () => {
   const [showPwd,  setShowPwd]    = useState(false);
   const [showConf, setShowConf]   = useState(false);
   const [loading,  setLoading]    = useState(false);
-  const [error,    setError]      = useState('');
-  const [success,  setSuccess]    = useState('');
 
   const handleInputChange = e =>
     setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
@@ -40,28 +39,39 @@ const ResetPassword = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(''); setSuccess('');
-    if (!email)              { setError('Session expired. Please restart the process.'); return; }
-    if (otpValues.join('').length !== 6) { setError('Enter all 6 digits.'); return; }
-    if (!formData.newPassword)           { setError('Enter a new password.'); return; }
-    if (formData.newPassword !== formData.confirmPassword) { setError('Passwords do not match.'); return; }
+    e.preventDefault();
+    if (!email) {
+      toast.error('Session expired. Please restart the process.');
+      return;
+    }
+    if (otpValues.join('').length !== 6) {
+      toast.error('Enter all 6 digits.');
+      return;
+    }
+    if (!formData.newPassword) {
+      toast.error('Enter a new password.');
+      return;
+    }
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error('Passwords do not match.');
+      return;
+    }
     setLoading(true);
     try {
       await api.post('/users/reset-password', { email, otp: otpValues.join(''), newPassword: formData.newPassword });
-      setSuccess('Password reset successfully!');
+      toast.success('Password reset successfully!');
       setTimeout(() => navigate('/login', { state:{ message:'Password reset. Please login with your new password.' } }), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid OTP or failed to reset password.');
-    } finally { setLoading(false); }
+      toast.error(err.response?.data?.message || 'Invalid OTP or failed to reset password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <div className="form-title">Reset Password</div>
       <div className="form-sub">Enter your verification code and choose a new password.</div>
-
-      {error   && <div className="auth-sys-banner sys-error">{error}</div>}
-      {success && <div className="auth-sys-banner sys-success">{success}</div>}
 
       <form onSubmit={handleSubmit} autoComplete="on">
         <div className="auth-field">
