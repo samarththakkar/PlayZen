@@ -34,8 +34,13 @@ export const AuthProvider = ({ children }) => {
     if (params.get('login') === 'success' && !googleSuccessToastShownRef.current) {
       googleSuccessToastShownRef.current = true;
       toast.success('Successfully logged in with Google!');
-      const cleanSearch = window.location.search.replace(/[?&]login=success/, '').replace(/^&/, '?');
-      const newUrl = window.location.pathname + (cleanSearch === '?' ? '' : cleanSearch);
+      const cleanSearch = window.location.search
+        .replace(/[?&]login=success/, '')
+        .replace(/[?&]accessToken=[^&]*/, '')
+        .replace(/[?&]refreshToken=[^&]*/, '')
+        .replace(/^&/, '?')
+        .replace(/^\?$/, '');
+      const newUrl = window.location.pathname + cleanSearch;
       window.history.replaceState({}, document.title, newUrl);
     }
   }, []);
@@ -51,6 +56,17 @@ export const AuthProvider = ({ children }) => {
     const checkAuthStatus = async () => {
       if (checkingRef.current) return;
       checkingRef.current = true;
+
+      // Extract OAuth tokens from URL if present
+      const params = new URLSearchParams(window.location.search);
+      const urlAccessToken = params.get('accessToken');
+      const urlRefreshToken = params.get('refreshToken');
+      if (urlAccessToken) {
+        localStorage.setItem('playzen_accessToken', urlAccessToken);
+      }
+      if (urlRefreshToken) {
+        localStorage.setItem('playzen_refreshToken', urlRefreshToken);
+      }
 
       try {
         const response = await authService.getCurrentUser();
@@ -77,6 +93,8 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setIsAuthenticated(false);
         localStorage.removeItem('playzen_user');
+        localStorage.removeItem('playzen_accessToken');
+        localStorage.removeItem('playzen_refreshToken');
       } finally {
         setLoading(false);
         checkingRef.current = false;
@@ -104,6 +122,11 @@ export const AuthProvider = ({ children }) => {
       if (!loggedInUser) {
         throw new Error('Invalid login response — no user data returned.');
       }
+
+      const accessToken = response.data?.data?.accessToken || response.data?.accessToken;
+      const refreshToken = response.data?.data?.refreshToken || response.data?.refreshToken;
+      if (accessToken) localStorage.setItem('playzen_accessToken', accessToken);
+      if (refreshToken) localStorage.setItem('playzen_refreshToken', refreshToken);
 
       setUser(loggedInUser);
       setIsAuthenticated(true);
@@ -137,6 +160,11 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Invalid registration response — no user data returned.');
       }
 
+      const accessToken = response.data?.data?.accessToken || response.data?.accessToken;
+      const refreshToken = response.data?.data?.refreshToken || response.data?.refreshToken;
+      if (accessToken) localStorage.setItem('playzen_accessToken', accessToken);
+      if (refreshToken) localStorage.setItem('playzen_refreshToken', refreshToken);
+
       setUser(registeredUser);
       setIsAuthenticated(true);
       localStorage.setItem('playzen_user', JSON.stringify(registeredUser));
@@ -165,6 +193,8 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setAuthError(null);
       localStorage.removeItem('playzen_user');
+      localStorage.removeItem('playzen_accessToken');
+      localStorage.removeItem('playzen_refreshToken');
     }
   }, []);
 
@@ -176,8 +206,16 @@ export const AuthProvider = ({ children }) => {
       const updated = prev ? { ...prev, ...newUserData } : newUserData;
       if (updated) {
         localStorage.setItem('playzen_user', JSON.stringify(updated));
+        if (newUserData.accessToken) {
+          localStorage.setItem('playzen_accessToken', newUserData.accessToken);
+        }
+        if (newUserData.refreshToken) {
+          localStorage.setItem('playzen_refreshToken', newUserData.refreshToken);
+        }
       } else {
         localStorage.removeItem('playzen_user');
+        localStorage.removeItem('playzen_accessToken');
+        localStorage.removeItem('playzen_refreshToken');
       }
       return updated;
     });
@@ -206,6 +244,8 @@ export const AuthProvider = ({ children }) => {
               return null;
             });
             setIsAuthenticated(false);
+            localStorage.removeItem('playzen_accessToken');
+            localStorage.removeItem('playzen_refreshToken');
           }
         } catch (err) {
           console.error('[AuthContext] Error parsing playzen_user from storage event:', err);
@@ -214,6 +254,16 @@ export const AuthProvider = ({ children }) => {
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Sync token refresh failure (logout) in current tab
+  useEffect(() => {
+    const handleLogoutEvent = () => {
+      setUser(null);
+      setIsAuthenticated(false);
+    };
+    window.addEventListener('playzen-logout', handleLogoutEvent);
+    return () => window.removeEventListener('playzen-logout', handleLogoutEvent);
   }, []);
 
   /* ─────────────────────────────────────────────

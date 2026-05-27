@@ -59,7 +59,7 @@ router.route("/auth/google/callback").get((req, res, next) => {
 
             res.cookie("accessToken", accessToken, options)
                 .cookie("refreshToken", refreshToken, options)
-                .redirect(`${process.env.CLIENT_URL}/?login=success`);
+                .redirect(`${process.env.CLIENT_URL}/?login=success&accessToken=${accessToken}&refreshToken=${refreshToken}`);
         } catch (error) {
             console.error("Token generation error during Google callback:", error);
             return res.redirect(`${process.env.CLIENT_URL}/login?error=token-generation-failed`);

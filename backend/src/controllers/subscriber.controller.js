@@ -78,14 +78,16 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 ────────────────────────────────────────────────────────────── */
 const getSubscriptionStatus = asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const subscriberId  = req.user._id;
+    const subscriberId  = req.user?._id;
 
     if (!channelId)            throw new ApiError(400, "Channel id is required");
     if (!isValidId(channelId)) throw new ApiError(400, "Invalid channel id");
 
     // Run both queries in parallel — faster than sequential awaits
     const [subscription, subscribersCount] = await Promise.all([
-        Subscription.findOne({ subscriber: subscriberId, channel: channelId }).lean(),
+        subscriberId
+            ? Subscription.findOne({ subscriber: subscriberId, channel: channelId }).lean()
+            : Promise.resolve(null),
         Subscription.getSubscriberCount(channelId),
     ]);
 

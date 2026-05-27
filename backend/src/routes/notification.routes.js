@@ -16,6 +16,5 @@ router.route("/unread-count").get(verifyJWT, getUnreadCount);
 router.route("/:notificationId/mark-as-read").post(verifyJWT, markAsRead);
 router.route("/mark-all-as-read").post(verifyJWT, markAllAsRead);
 router.route("/:notificationId").delete(verifyJWT, deleteNotification);
-router.route("/")
 export default router;
 
