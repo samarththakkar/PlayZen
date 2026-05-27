@@ -4,8 +4,8 @@ import jwt from "jsonwebtoken";
 export const optionalAuth = async (req, res, next) => {
   try {
     const token =
-      req.cookies?.accessToken ||
-      req.header("Authorization")?.replace("Bearer ", "");
+      req.header("Authorization")?.replace("Bearer ", "") ||
+      req.cookies?.accessToken;
 
     if (token) {
       try {
