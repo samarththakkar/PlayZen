@@ -6,6 +6,8 @@ export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user,            setUser]            = useState(() => {
+    const token = localStorage.getItem('playzen_accessToken');
+    if (!token) return null;
     const saved = localStorage.getItem('playzen_user');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
@@ -13,6 +15,8 @@ export const AuthProvider = ({ children }) => {
     return null;
   });
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = localStorage.getItem('playzen_accessToken');
+    if (!token) return false;
     const saved = localStorage.getItem('playzen_user');
     if (saved) {
       try {
@@ -23,7 +27,12 @@ export const AuthProvider = ({ children }) => {
     return false;
   });
   const [loading,         setLoading]         = useState(() => {
-    return !localStorage.getItem('playzen_user');
+    const params = new URLSearchParams(window.location.search);
+    const hasUrlToken = params.get('accessToken');
+    const token = localStorage.getItem('playzen_accessToken') || hasUrlToken;
+    const user = localStorage.getItem('playzen_user');
+    if (!token && !user) return false;
+    return true;
   });
 
   const googleSuccessToastShownRef = useRef(false);
@@ -51,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
   /* ─────────────────────────────────────────────
      RESTORE SESSION ON MOUNT
-  ───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
   useEffect(() => {
     const checkAuthStatus = async () => {
       if (checkingRef.current) return;
@@ -66,6 +75,19 @@ export const AuthProvider = ({ children }) => {
       }
       if (urlRefreshToken) {
         localStorage.setItem('playzen_refreshToken', urlRefreshToken);
+      }
+
+      const hasToken = localStorage.getItem('playzen_accessToken') || urlAccessToken;
+
+      if (!hasToken) {
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('playzen_user');
+        localStorage.removeItem('playzen_accessToken');
+        localStorage.removeItem('playzen_refreshToken');
+        setLoading(false);
+        checkingRef.current = false;
+        return;
       }
 
       try {
