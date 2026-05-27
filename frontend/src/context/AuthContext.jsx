@@ -36,23 +36,6 @@ export const AuthProvider = ({ children }) => {
   });
 
   const googleSuccessToastShownRef = useRef(false);
-
-  // Display Google login success toast and clean URL parameters
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('login') === 'success' && !googleSuccessToastShownRef.current) {
-      googleSuccessToastShownRef.current = true;
-      toast.success('Successfully logged in with Google!');
-      const cleanSearch = window.location.search
-        .replace(/[?&]login=success/, '')
-        .replace(/[?&]accessToken=[^&]*/, '')
-        .replace(/[?&]refreshToken=[^&]*/, '')
-        .replace(/^&/, '?')
-        .replace(/^\?$/, '');
-      const newUrl = window.location.pathname + cleanSearch;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-  }, []);
   const [authError,       setAuthError]       = useState(null);
 
   // Prevent duplicate simultaneous auth checks
@@ -70,11 +53,31 @@ export const AuthProvider = ({ children }) => {
       const params = new URLSearchParams(window.location.search);
       const urlAccessToken = params.get('accessToken');
       const urlRefreshToken = params.get('refreshToken');
+      const loginSuccess = params.get('login') === 'success';
+
       if (urlAccessToken) {
         localStorage.setItem('playzen_accessToken', urlAccessToken);
       }
       if (urlRefreshToken) {
         localStorage.setItem('playzen_refreshToken', urlRefreshToken);
+      }
+
+      // Display Google login success toast
+      if (loginSuccess && !googleSuccessToastShownRef.current) {
+        googleSuccessToastShownRef.current = true;
+        toast.success('Successfully logged in with Google!');
+      }
+
+      // Clean search parameters to prevent leaking tokens in URL
+      if (loginSuccess || urlAccessToken || urlRefreshToken) {
+        const cleanSearch = window.location.search
+          .replace(/[?&]login=success/, '')
+          .replace(/[?&]accessToken=[^&]*/, '')
+          .replace(/[?&]refreshToken=[^&]*/, '')
+          .replace(/^&/, '?')
+          .replace(/^\?$/, '');
+        const newUrl = window.location.pathname + cleanSearch;
+        window.history.replaceState({}, document.title, newUrl);
       }
 
       const hasToken = localStorage.getItem('playzen_accessToken') || urlAccessToken;
