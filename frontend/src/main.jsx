@@ -5,6 +5,14 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import './styles/index.css' // Import Tailwind CSS
 import App from './App.jsx'
 
+// Silence console logs in production to prevent leaking sensitive debug information
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.info = () => {};
+  console.debug = () => {};
+  console.warn = () => {};
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
