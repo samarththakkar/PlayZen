@@ -1,3 +1,5 @@
+import { ensureHttps } from './urlUtils';
+
 /**
  * Generates a consistent, deterministic avatar background color based on a string.
  * This ensures the same user always gets the exact same "random" avatar.
@@ -40,7 +42,7 @@ export const getAvatarUrl = (owner, fallbackName = "Unknown") => {
     // Use the permanently saved avatar from the database
     const rawAvatarUrl = owner.avatar;
     if (rawAvatarUrl && rawAvatarUrl.trim().length > 0) {
-        return rawAvatarUrl;
+        return ensureHttps(rawAvatarUrl);
     }
 
     // Extreme fallback if DB was somehow corrupted

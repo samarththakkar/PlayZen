@@ -17,6 +17,7 @@ import useSubscription from '../../hooks/useSubscription';
 import useWatchProgress from '../../hooks/useWatchProgress';
 import VideoCard from '../../components/video/VideoCard';
 import { useAuth } from '../../hooks/useAuth';
+import { ensureHttps } from '../../utils/urlUtils';
 
 const copyToClipboard = (text) => {
   if (navigator.clipboard && window.isSecureContext) {
@@ -623,8 +624,8 @@ const Watch = () => {
         >
           <video 
             ref={videoRef}
-            src={video.videoFile} 
-            poster={video.thumbnail}
+            src={ensureHttps(video.videoFile)} 
+            poster={ensureHttps(video.thumbnail)}
             autoPlay 
             className="main-video-player"
             onClick={handlePlayPause}

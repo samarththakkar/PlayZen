@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getAvatarUrl } from '../../utils/avatarUtils';
+import { ensureHttps } from '../../utils/urlUtils';
 import api from '../../services/api';
 import toast from '../../utils/toast';
 import './VideoCard.css';
@@ -72,11 +73,11 @@ const VideoCard = ({ video }) => {
 
   /* Derived values */
   const title    = video.title     || 'Untitled Video';
-  const thumbnail = video.thumbnail || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop';
+  const thumbnail = ensureHttps(video.thumbnail) || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop';
   const views    = video.views     || 0;
   const timeAgo  = getRelativeTime(video.createdAt);
   const duration = formatDuration(video.duration);
-  const previewUrl = video.videoFile || '';
+  const previewUrl = ensureHttps(video.videoFile) || '';
 
   /* Owner / avatar resolution (unchanged logic) */
   const isOwnerDocPopulated = video.owner && typeof video.owner === 'object' && video.owner.username;
